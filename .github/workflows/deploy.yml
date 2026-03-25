@@ -1,0 +1,180 @@
+name: Deploy DeerFlow
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create .env file
+        run: |
+          cat > .env << 'EOF'
+          FIRECRAWL_API_KEY=${{ secrets.FIRECRAWL_API_KEY }}
+          OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
+          OPENAI_BASE_URL=${{ secrets.OPENAI_BASE_URL }}
+          EOF
+
+      - name: Create config.yaml from example
+        run: |
+          if [ ! -f config.yaml ]; then
+            cp config.example.yaml config.yaml
+          fi
+
+      - name: Patch config.yaml with custom models
+        run: |
+          python3 scripts/configure.py 2>/dev/null || true
+          cat > /tmp/models_patch.py << 'PYEOF'
+          import yaml, sys
+          
+          with open("config.yaml", "r") as f:
+              config = yaml.safe_load(f)
+          
+          config["models"] = [
+              {
+                  "name": "gemini-3-flash",
+                  "display_name": "Gemini 3 Flash",
+                  "use": "langchain_openai:ChatOpenAI",
+                  "model": "gemini-3-flash",
+                  "api_key": "$OPENAI_API_KEY",
+                  "base_url": "$OPENAI_BASE_URL",
+                  "max_tokens": 8192,
+                  "temperature": 0.7,
+                  "supports_thinking": True,
+              },
+              {
+                  "name": "gemini-3.1-pro-high",
+                  "display_name": "Gemini 3.1 Pro (High)",
+                  "use": "langchain_openai:ChatOpenAI",
+                  "model": "gemini-3.1-pro-high",
+                  "api_key": "$OPENAI_API_KEY",
+                  "base_url": "$OPENAI_BASE_URL",
+                  "max_tokens": 8192,
+                  "temperature": 0.7,
+                  "supports_thinking": True,
+              },
+              {
+                  "name": "gemini-3.1-pro-low",
+                  "display_name": "Gemini 3.1 Pro (Low)",
+                  "use": "langchain_openai:ChatOpenAI",
+                  "model": "gemini-3.1-pro-low",
+                  "api_key": "$OPENAI_API_KEY",
+                  "base_url": "$OPENAI_BASE_URL",
+                  "max_tokens": 8192,
+                  "temperature": 0.7,
+                  "supports_thinking": True,
+              },
+              {
+                  "name": "claude-sonnet-4-6",
+                  "display_name": "Claude Sonnet 4.6",
+                  "use": "langchain_openai:ChatOpenAI",
+                  "model": "claude-sonnet-4-6",
+                  "api_key": "$OPENAI_API_KEY",
+                  "base_url": "$OPENAI_BASE_URL",
+                  "max_tokens": 8192,
+                  "temperature": 0.7,
+                  "supports_thinking": True,
+              },
+              {
+                  "name": "claude-opus-4-6-thinking",
+                  "display_name": "Claude Opus 4.6 (Thinking)",
+                  "use": "langchain_openai:ChatOpenAI",
+                  "model": "claude-opus-4-6-thinking",
+                  "api_key": "$OPENAI_API_KEY",
+                  "base_url": "$OPENAI_BASE_URL",
+                  "max_tokens": 8192,
+                  "temperature": 0.7,
+                  "supports_thinking": True,
+              },
+              {
+                  "name": "mistral-medium-2505",
+                  "display_name": "Mistral Medium",
+                  "use": "langchain_openai:ChatOpenAI",
+                  "model": "mistral-medium-2505",
+                  "api_key": "$OPENAI_API_KEY",
+                  "base_url": "$OPENAI_BASE_URL",
+                  "max_tokens": 8192,
+                  "temperature": 0.7,
+                  "supports_thinking": True,
+              },
+              {
+                  "name": "sonar",
+                  "display_name": "Sonar",
+                  "use": "langchain_openai:ChatOpenAI",
+                  "model": "sonar",
+                  "api_key": "$OPENAI_API_KEY",
+                  "base_url": "$OPENAI_BASE_URL",
+                  "max_tokens": 4096,
+                  "temperature": 0.7,
+              },
+              {
+                  "name": "sonar-pro",
+                  "display_name": "Sonar Pro",
+                  "use": "langchain_openai:ChatOpenAI",
+                  "model": "sonar-pro",
+                  "api_key": "$OPENAI_API_KEY",
+                  "base_url": "$OPENAI_BASE_URL",
+                  "max_tokens": 4096,
+                  "temperature": 0.7,
+              },
+              {
+                  "name": "sonar-reasoning",
+                  "display_name": "Sonar Reasoning",
+                  "use": "langchain_openai:ChatOpenAI",
+                  "model": "sonar-reasoning",
+                  "api_key": "$OPENAI_API_KEY",
+                  "base_url": "$OPENAI_BASE_URL",
+                  "max_tokens": 4096,
+                  "temperature": 0.7,
+                  "supports_thinking": True,
+              },
+          ]
+          
+          # Switch web tools to Firecrawl
+          for tool in config.get("tools", []):
+              if tool.get("name") == "web_search":
+                  tool["use"] = "deerflow.community.firecrawl.tools:web_search_tool"
+              elif tool.get("name") == "web_fetch":
+                  tool["use"] = "deerflow.community.firecrawl.tools:web_fetch_tool"
+                  tool.pop("timeout", None)
+          
+          with open("config.yaml", "w") as f:
+              yaml.dump(config, f, default_flow_style=False, allow_unicode=True, sort_keys=False)
+          
+          print("✓ config.yaml patched with custom models and Firecrawl tools")
+          PYEOF
+          python3 /tmp/models_patch.py
+
+      - name: Deploy with Docker Compose
+        run: |
+          export DEER_FLOW_HOME="$(pwd)/backend/.deer-flow"
+          export DEER_FLOW_CONFIG_PATH="$(pwd)/config.yaml"
+          export DEER_FLOW_EXTENSIONS_CONFIG_PATH="$(pwd)/extensions_config.json"
+          export DEER_FLOW_DOCKER_SOCKET="/var/run/docker.sock"
+          export DEER_FLOW_REPO_ROOT="$(pwd)"
+          export BETTER_AUTH_SECRET="${{ secrets.BETTER_AUTH_SECRET }}"
+          
+          mkdir -p "$DEER_FLOW_HOME"
+          
+          # Create extensions_config.json if missing
+          if [ ! -f "$DEER_FLOW_EXTENSIONS_CONFIG_PATH" ]; then
+            echo '{"mcpServers":{},"skills":{}}' > "$DEER_FLOW_EXTENSIONS_CONFIG_PATH"
+          fi
+          
+          # Stop existing containers
+          docker compose -p deer-flow -f docker/docker-compose.yaml down --remove-orphans 2>/dev/null || true
+          
+          # Build and start
+          docker compose -p deer-flow -f docker/docker-compose.yaml up --build -d --remove-orphans \
+            frontend gateway langgraph nginx
+
+      - name: Health check
+        run: |
+          echo "Waiting for services to start..."
+          sleep 15
+          curl -sf http://localhost:2026 > /dev/null && echo "✓ DeerFlow is running on http://localhost:2026" || echo "⚠ Health check failed"
