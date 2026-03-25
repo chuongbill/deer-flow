@@ -161,10 +161,16 @@ jobs:
           
           mkdir -p "$DEER_FLOW_HOME"
           
+          # Create frontend/.env if missing
+          touch frontend/.env
+          
           # Create extensions_config.json if missing
           if [ ! -f "$DEER_FLOW_EXTENSIONS_CONFIG_PATH" ]; then
             echo '{"mcpServers":{},"skills":{}}' > "$DEER_FLOW_EXTENSIONS_CONFIG_PATH"
           fi
+          
+          # Ensure CLI auth directories exist (required by docker-compose volume mounts)
+          mkdir -p ~/.claude ~/.codex
           
           # Stop existing containers
           docker compose -p deer-flow -f docker/docker-compose.yaml down --remove-orphans 2>/dev/null || true
