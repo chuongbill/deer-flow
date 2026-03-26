@@ -97,6 +97,102 @@ node /mnt/user-data/workspace/create-pptx.js /mnt/user-data/outputs/presentation
 
 ---
 
+## AI-Generated Images (Recommended)
+
+**NEVER use web-searched images** — they may have copyright issues. Instead, generate custom images using the image-generation skill (Gemini API) and embed them in slides.
+
+### Workflow
+
+1. Read the image-generation skill: `/mnt/skills/public/image-generation/SKILL.md`
+2. Generate images FIRST, then create the PPTX script that references them
+3. Pass ALL file paths (images + output) as `process.argv` arguments
+
+### Step 1: Generate Images
+
+For each slide that needs an image, create a prompt JSON and generate it:
+
+```bash
+# Write the prompt
+cat > /mnt/user-data/workspace/slide1-prompt.json << 'EOF'
+{
+  "prompt": "Modern abstract illustration of artificial intelligence in healthcare, showing a glowing neural network overlaid on a stylized medical cross, dark navy background (#1E2761), clean vector style, no text",
+  "style": "Professional tech illustration, modern flat design with depth",
+  "color_palette": "Navy #1E2761, ice blue #CADCFC, white accents"
+}
+EOF
+
+# Generate the image
+python /mnt/skills/public/image-generation/scripts/generate.py \
+  --prompt-file /mnt/user-data/workspace/slide1-prompt.json \
+  --output-file /mnt/user-data/outputs/slide1-bg.jpg \
+  --aspect-ratio 16:9
+```
+
+### Step 2: Create PPTX with Generated Images
+
+The JS script should accept image paths as additional CLI arguments:
+
+```javascript
+const pptxgen = require("pptxgenjs");
+const fs = require("fs");
+const path = require("path");
+
+// Get output path and image paths from command line
+const outputPath = process.argv[2];
+const imagePaths = process.argv.slice(3); // All remaining args are image paths
+
+let pres = new pptxgen();
+pres.layout = 'LAYOUT_16x9';
+
+// Title slide with AI-generated background image
+let slide1 = pres.addSlide();
+if (imagePaths[0] && fs.existsSync(imagePaths[0])) {
+  slide1.background = { path: imagePaths[0] };
+} else {
+  slide1.background = { color: "1E2761" };
+}
+slide1.addText("AI in Healthcare", {
+  x: 0.5, y: 1.5, w: 9, h: 2,
+  fontSize: 44, fontFace: "Arial", color: "FFFFFF",
+  bold: true, align: "center",
+  shadow: { type: "outer", color: "000000", blur: 6, offset: 2, opacity: 0.5 }
+});
+
+// Content slide with AI-generated inline image
+let slide2 = pres.addSlide();
+slide2.background = { color: "F5F5F5" };
+slide2.addText("Key Benefits", {
+  x: 0.5, y: 0.3, w: 5, h: 0.8,
+  fontSize: 36, fontFace: "Arial", color: "1E2761", bold: true
+});
+slide2.addText([
+  { text: "Faster diagnosis", options: { bullet: true, breakLine: true } },
+  { text: "Reduced human error", options: { bullet: true, breakLine: true } },
+  { text: "24/7 patient monitoring", options: { bullet: true } }
+], {
+  x: 0.5, y: 1.3, w: 5, h: 3, fontSize: 18, fontFace: "Arial", color: "363636"
+});
+// Right-side image
+if (imagePaths[1] && fs.existsSync(imagePaths[1])) {
+  slide2.addImage({ path: imagePaths[1], x: 5.5, y: 0.5, w: 4.2, h: 4.5 });
+}
+
+pres.writeFile({ fileName: outputPath });
+```
+
+### Step 3: Run with All Paths as Arguments
+
+```bash
+node /mnt/user-data/workspace/create-pptx.js \
+  /mnt/user-data/outputs/presentation.pptx \
+  /mnt/user-data/outputs/slide1-bg.jpg \
+  /mnt/user-data/outputs/slide2-img.jpg
+```
+
+> **TIP**: Generate images that complement the slide content — abstract backgrounds for title slides, illustrative graphics for content slides, and data visualizations for stats slides. Always specify "no text" in image prompts since text will be added via PptxGenJS.
+
+---
+
 ## Design Ideas
 
 **Don't create boring slides.** Consider these for each slide:
