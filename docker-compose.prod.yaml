@@ -8,12 +8,20 @@ services:
     expose:
       - "2026"
     depends_on:
-      - frontend
-      - gateway
-      - langgraph
+      frontend:
+        condition: service_healthy
+      gateway:
+        condition: service_healthy
+      langgraph:
+        condition: service_healthy
     networks:
       - deer-flow
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:2026"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
   frontend:
     image: ghcr.io/chuongbill/deer-flow-frontend:latest
@@ -23,6 +31,11 @@ services:
     networks:
       - deer-flow
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
   gateway:
     image: ghcr.io/chuongbill/deer-flow-backend:latest
@@ -46,6 +59,11 @@ services:
     networks:
       - deer-flow
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import requests as r;r.get('http://127.0.0.1:8001/health').raise_for_status()"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
   langgraph:
     image: ghcr.io/chuongbill/deer-flow-backend:latest
@@ -71,6 +89,12 @@ services:
     networks:
       - deer-flow
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import requests as r;r.get('http://127.0.0.1:2024/ok').raise_for_status()"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
 volumes:
   deer-flow-data:
