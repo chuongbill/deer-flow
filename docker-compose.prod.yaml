@@ -6,10 +6,6 @@ services:
     image: ghcr.io/chuongbill/deer-flow-nginx:latest
     expose:
       - "2026"
-    volumes:
-      - type: bind
-        source: ./.htpasswd
-        target: /etc/nginx/.htpasswd
     depends_on:
       frontend:
         condition: service_healthy
@@ -21,7 +17,7 @@ services:
       - deer-flow
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:2026/healthz"]
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:2026"]
       interval: 10s
       timeout: 5s
       retries: 3
