@@ -7,7 +7,7 @@ services:
     expose:
       - "2026"
     labels:
-      - "traefik.http.middlewares.deerflow-auth.basicauth.users=chuong:$$2b$$12$$gbBMSLKi3Ov4h/Ucz/XBWOfBcd9qZ0tdJUlmMQoatimRuzoMGLDP6"
+      - "traefik.http.middlewares.deerflow-auth.basicauth.users=chuong:$2y$12$shpBXrZXqkoxY21d7YhWeOq7Y8M6jlYqO5cuFacXre6X3IWP2E/RC"
     depends_on:
       frontend:
         condition: service_healthy
