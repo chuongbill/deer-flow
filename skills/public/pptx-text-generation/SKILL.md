@@ -18,18 +18,9 @@ This skill creates **editable** PowerPoint presentations using PptxGenJS (JavaSc
 
 ---
 
-## Setup (First Time)
+## Setup
 
-Before creating a presentation, install required npm packages:
-
-```bash
-npm install -g pptxgenjs
-```
-
-For icons support (optional):
-```bash
-npm install -g react-icons react react-dom sharp
-```
+`pptxgenjs` is pre-installed globally. No setup needed.
 
 ---
 
@@ -40,8 +31,9 @@ npm install -g react-icons react react-dom sharp
 ### Workflow
 
 1. Create a JavaScript file in `/mnt/user-data/workspace/` that builds the presentation
-2. Run it with Node.js
-3. Output the .pptx to `/mnt/user-data/outputs/`
+2. **IMPORTANT**: The script MUST accept the output file path from the command line via `process.argv[2]`
+3. Run it with Node.js, passing the output path as an argument
+4. Output the .pptx to `/mnt/user-data/outputs/`
 
 ### Basic Example
 
@@ -49,6 +41,13 @@ Create `/mnt/user-data/workspace/create-pptx.js`:
 
 ```javascript
 const pptxgen = require("pptxgenjs");
+
+// IMPORTANT: Always get the output path from command line arguments
+const outputPath = process.argv[2];
+if (!outputPath) {
+  console.error("Usage: node create-pptx.js <output-path>");
+  process.exit(1);
+}
 
 let pres = new pptxgen();
 pres.layout = 'LAYOUT_16x9';
@@ -84,14 +83,17 @@ slide2.addText([
   x: 0.5, y: 1.5, w: 8, h: 3, fontSize: 18, fontFace: "Arial", color: "363636"
 });
 
-pres.writeFile({ fileName: "/mnt/user-data/outputs/presentation.pptx" });
+// Write to the output path provided via command line
+pres.writeFile({ fileName: outputPath });
 ```
 
-Then run:
+Then run (**pass the output path as an argument**):
 
 ```bash
-node /mnt/user-data/workspace/create-pptx.js
+node /mnt/user-data/workspace/create-pptx.js /mnt/user-data/outputs/presentation.pptx
 ```
+
+> **CRITICAL**: Always pass the output file path as an argument to `node`, never hardcode `/mnt/user-data/` paths inside the JavaScript file. The bash command handles path resolution automatically.
 
 ---
 

@@ -29,6 +29,9 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/* \
     && npm install -g pptxgenjs
 
+# Ensure Node.js can find globally installed packages from any working directory
+ENV NODE_PATH=/usr/lib/node_modules
+
 # Install Docker CLI (for DooD: allows starting sandbox containers via host Docker socket)
 COPY --from=docker:cli /usr/local/bin/docker /usr/local/bin/docker
 
