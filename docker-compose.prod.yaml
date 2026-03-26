@@ -6,6 +6,8 @@ services:
     image: ghcr.io/chuongbill/deer-flow-nginx:latest
     expose:
       - "2026"
+    labels:
+      - "traefik.http.middlewares.deerflow-auth.basicauth.users=chuong:$$2b$$12$$gbBMSLKi3Ov4h/Ucz/XBWOfBcd9qZ0tdJUlmMQoatimRuzoMGLDP6"
     depends_on:
       frontend:
         condition: service_healthy
