@@ -4,7 +4,6 @@
 services:
   nginx:
     image: ghcr.io/chuongbill/deer-flow-nginx:latest
-    container_name: deer-flow-nginx
     expose:
       - "2026"
     depends_on:
@@ -25,7 +24,6 @@ services:
 
   frontend:
     image: ghcr.io/chuongbill/deer-flow-frontend:latest
-    container_name: deer-flow-frontend
     environment:
       - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
       - BETTER_AUTH_BASE_URL=${BETTER_AUTH_BASE_URL}
@@ -41,7 +39,6 @@ services:
 
   gateway:
     image: ghcr.io/chuongbill/deer-flow-backend:latest
-    container_name: deer-flow-gateway
     command: sh -c "cd backend && PYTHONPATH=. uv run uvicorn app.gateway.app:app --host 0.0.0.0 --port 8001 --workers 2"
     volumes:
       - type: bind
@@ -70,7 +67,6 @@ services:
 
   langgraph:
     image: ghcr.io/chuongbill/deer-flow-backend:latest
-    container_name: deer-flow-langgraph
     command: sh -c "cd /app/backend && uv run langgraph dev --no-browser --allow-blocking --no-reload --host 0.0.0.0 --port 2024"
     volumes:
       - type: bind
