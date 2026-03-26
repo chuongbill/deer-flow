@@ -61,10 +61,11 @@ services:
       - deer-flow
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "python3", "-c", "import requests as r;r.get('http://127.0.0.1:8001/health').raise_for_status()"]
+      test: ["CMD", "curl", "-sf", "http://127.0.0.1:8001/health"]
       interval: 10s
       timeout: 5s
       retries: 3
+      start_period: 30s
 
   langgraph:
     image: ghcr.io/chuongbill/deer-flow-backend:latest
@@ -91,11 +92,11 @@ services:
       - deer-flow
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "python3", "-c", "import requests as r;r.get('http://127.0.0.1:2024/ok').raise_for_status()"]
+      test: ["CMD", "curl", "-sf", "http://127.0.0.1:2024/ok"]
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 30s
+      start_period: 60s
 
 volumes:
   deer-flow-data:
