@@ -6,6 +6,10 @@ services:
     image: ghcr.io/chuongbill/deer-flow-nginx:latest
     expose:
       - "2026"
+    volumes:
+      - type: bind
+        source: ./.htpasswd
+        target: /etc/nginx/.htpasswd
     depends_on:
       frontend:
         condition: service_healthy
