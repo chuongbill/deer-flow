@@ -1,237 +1,156 @@
 ---
 name: pptx-text-generation
-description: "Use this skill to create professional, editable PowerPoint presentations with real text, shapes, charts, and images. Creates .pptx files with actual text elements (not image-based slides). Supports rich formatting, icons, tables, charts, and professional design. Trigger when user wants an editable presentation, deck, or slides."
+description: "Use this skill to create professional, editable PowerPoint presentations with real text, shapes, charts, and AI-generated images. Creates .pptx files with actual editable text elements. Supports rich formatting, tables, charts, and professional design. Trigger when user wants an editable presentation, deck, or slides."
 ---
 
 # PPTX Text-Based Generation Skill
 
 ## Overview
 
-This skill creates **editable** PowerPoint presentations using PptxGenJS (JavaScript). Unlike image-based slides, these contain real text, shapes, charts, and icons that can be edited in PowerPoint.
-
-## Quick Reference
-
-| Task | Guide |
-|------|-------|
-| Create from scratch | Read [pptxgenjs.md](/mnt/skills/public/pptx-text-generation/pptxgenjs.md) |
-| Edit existing | Read [editing.md](/mnt/skills/public/pptx-text-generation/editing.md) |
-
----
+This skill creates **editable** PowerPoint presentations with **AI-generated images** and real text. Unlike image-only slides, the text is fully editable in PowerPoint/Google Slides.
 
 ## Setup
 
-`pptxgenjs` is pre-installed globally. No setup needed.
+All dependencies are pre-installed. No setup needed.
 
 ---
 
-## Creating from Scratch
+## Workflow (One-Shot)
 
-**Read [pptxgenjs.md](/mnt/skills/public/pptx-text-generation/pptxgenjs.md) for the full API reference.**
+The entire presentation is created from a **single plan JSON file** using one command:
 
-### Workflow
+1. Create a plan JSON file in `/mnt/user-data/workspace/`
+2. Run the generator script
+3. Output is saved to `/mnt/user-data/outputs/`
 
-1. Create a JavaScript file in `/mnt/user-data/workspace/` that builds the presentation
-2. **IMPORTANT**: The script MUST accept the output file path from the command line via `process.argv[2]`
-3. Run it with Node.js, passing the output path as an argument
-4. Output the .pptx to `/mnt/user-data/outputs/`
+### Step 1: Create Plan JSON
 
-### Basic Example
+Write a plan file to `/mnt/user-data/workspace/plan.json`:
 
-Create `/mnt/user-data/workspace/create-pptx.js`:
-
-```javascript
-const pptxgen = require("pptxgenjs");
-
-// IMPORTANT: Always get the output path from command line arguments
-const outputPath = process.argv[2];
-if (!outputPath) {
-  console.error("Usage: node create-pptx.js <output-path>");
-  process.exit(1);
-}
-
-let pres = new pptxgen();
-pres.layout = 'LAYOUT_16x9';
-pres.author = 'DeerFlow';
-pres.title = 'My Presentation';
-
-// Title slide
-let slide1 = pres.addSlide();
-slide1.background = { color: "1E2761" };
-slide1.addText("My Presentation", {
-  x: 0.5, y: 1.5, w: 9, h: 2,
-  fontSize: 44, fontFace: "Arial", color: "FFFFFF",
-  bold: true, align: "center"
-});
-slide1.addText("Created with DeerFlow", {
-  x: 0.5, y: 3.5, w: 9, h: 1,
-  fontSize: 20, fontFace: "Arial", color: "CADCFC",
-  align: "center"
-});
-
-// Content slide
-let slide2 = pres.addSlide();
-slide2.background = { color: "FFFFFF" };
-slide2.addText("Key Points", {
-  x: 0.5, y: 0.3, w: 9, h: 0.8,
-  fontSize: 36, fontFace: "Arial", color: "1E2761", bold: true
-});
-slide2.addText([
-  { text: "First important point", options: { bullet: true, breakLine: true } },
-  { text: "Second important point", options: { bullet: true, breakLine: true } },
-  { text: "Third important point", options: { bullet: true } }
-], {
-  x: 0.5, y: 1.5, w: 8, h: 3, fontSize: 18, fontFace: "Arial", color: "363636"
-});
-
-// Write to the output path provided via command line
-pres.writeFile({ fileName: outputPath });
-```
-
-Then run (**pass the output path as an argument**):
-
-```bash
-node /mnt/user-data/workspace/create-pptx.js /mnt/user-data/outputs/presentation.pptx
-```
-
-> **CRITICAL**: Always pass the output file path as an argument to `node`, never hardcode `/mnt/user-data/` paths inside the JavaScript file. The bash command handles path resolution automatically.
-
----
-
-## AI-Generated Images (Recommended)
-
-**NEVER use web-searched images** — they may have copyright issues. Instead, generate custom images using the image-generation skill (Gemini API) and embed them in slides.
-
-### Workflow
-
-1. Read the image-generation skill: `/mnt/skills/public/image-generation/SKILL.md`
-2. Generate images FIRST, then create the PPTX script that references them
-3. Pass ALL file paths (images + output) as `process.argv` arguments
-
-### Step 1: Generate Images
-
-For each slide that needs an image, create a prompt JSON and generate it:
-
-```bash
-# Write the prompt
-cat > /mnt/user-data/workspace/slide1-prompt.json << 'EOF'
+```json
 {
-  "prompt": "Modern abstract illustration of artificial intelligence in healthcare, showing a glowing neural network overlaid on a stylized medical cross, dark navy background (#1E2761), clean vector style, no text",
-  "style": "Professional tech illustration, modern flat design with depth",
-  "color_palette": "Navy #1E2761, ice blue #CADCFC, white accents"
+    "title": "The Future of AI in Healthcare",
+    "author": "DeerFlow",
+    "color_scheme": {
+        "primary": "1E2761",
+        "secondary": "CADCFC",
+        "accent": "FFFFFF",
+        "text_dark": "363636",
+        "text_light": "FFFFFF"
+    },
+    "slides": [
+        {
+            "type": "title",
+            "title": "The Future of AI\nin Healthcare",
+            "subtitle": "Transforming Patient Care Through Intelligence",
+            "image_prompt": "Modern abstract AI healthcare illustration, glowing neural network on medical cross, dark navy background, futuristic, no text"
+        },
+        {
+            "type": "content",
+            "title": "Key Benefits",
+            "bullets": [
+                "Faster, more accurate diagnosis",
+                "Reduced human error by up to 85%",
+                "24/7 patient monitoring and alerts",
+                "Personalized treatment plans"
+            ],
+            "image_prompt": "Doctor using holographic AI interface with patient vitals, futuristic hospital, soft blue lighting, no text",
+            "image_position": "right"
+        },
+        {
+            "type": "stats",
+            "title": "By The Numbers",
+            "stats": [
+                {"value": "$150B", "label": "Global AI Healthcare\nMarket by 2030"},
+                {"value": "85%", "label": "Reduction in\nDiagnostic Errors"},
+                {"value": "3.6M", "label": "Lives Saved\nAnnually"}
+            ]
+        },
+        {
+            "type": "cards",
+            "title": "Real-World Applications",
+            "cards": [
+                {"title": "Radiology", "description": "AI-powered image analysis detects tumors with 94% accuracy"},
+                {"title": "Drug Discovery", "description": "ML reduces development time from 10 years to 2"},
+                {"title": "Mental Health", "description": "NLP chatbots provide 24/7 therapeutic support"}
+            ]
+        },
+        {
+            "type": "closing",
+            "title": "The Future is Now",
+            "subtitle": "AI will not replace doctors.\nBut doctors who use AI will replace those who don't.",
+            "image_prompt": "Serene futuristic hospital room with glowing soft blue AI avatar, warm ambient lighting, deep navy shadows, hopeful, no text"
+        }
+    ]
 }
-EOF
-
-# Generate the image
-python /mnt/skills/public/image-generation/scripts/generate.py \
-  --prompt-file /mnt/user-data/workspace/slide1-prompt.json \
-  --output-file /mnt/user-data/outputs/slide1-bg.jpg \
-  --aspect-ratio 16:9
 ```
 
-### Step 2: Create PPTX with Generated Images
-
-The JS script should accept image paths as additional CLI arguments:
-
-```javascript
-const pptxgen = require("pptxgenjs");
-const fs = require("fs");
-const path = require("path");
-
-// Get output path and image paths from command line
-const outputPath = process.argv[2];
-const imagePaths = process.argv.slice(3); // All remaining args are image paths
-
-let pres = new pptxgen();
-pres.layout = 'LAYOUT_16x9';
-
-// Title slide with AI-generated background image
-let slide1 = pres.addSlide();
-if (imagePaths[0] && fs.existsSync(imagePaths[0])) {
-  slide1.background = { path: imagePaths[0] };
-} else {
-  slide1.background = { color: "1E2761" };
-}
-slide1.addText("AI in Healthcare", {
-  x: 0.5, y: 1.5, w: 9, h: 2,
-  fontSize: 44, fontFace: "Arial", color: "FFFFFF",
-  bold: true, align: "center",
-  shadow: { type: "outer", color: "000000", blur: 6, offset: 2, opacity: 0.5 }
-});
-
-// Content slide with AI-generated inline image
-let slide2 = pres.addSlide();
-slide2.background = { color: "F5F5F5" };
-slide2.addText("Key Benefits", {
-  x: 0.5, y: 0.3, w: 5, h: 0.8,
-  fontSize: 36, fontFace: "Arial", color: "1E2761", bold: true
-});
-slide2.addText([
-  { text: "Faster diagnosis", options: { bullet: true, breakLine: true } },
-  { text: "Reduced human error", options: { bullet: true, breakLine: true } },
-  { text: "24/7 patient monitoring", options: { bullet: true } }
-], {
-  x: 0.5, y: 1.3, w: 5, h: 3, fontSize: 18, fontFace: "Arial", color: "363636"
-});
-// Right-side image
-if (imagePaths[1] && fs.existsSync(imagePaths[1])) {
-  slide2.addImage({ path: imagePaths[1], x: 5.5, y: 0.5, w: 4.2, h: 4.5 });
-}
-
-pres.writeFile({ fileName: outputPath });
-```
-
-### Step 3: Run with All Paths as Arguments
+### Step 2: Run the Generator
 
 ```bash
-node /mnt/user-data/workspace/create-pptx.js \
-  /mnt/user-data/outputs/presentation.pptx \
-  /mnt/user-data/outputs/slide1-bg.jpg \
-  /mnt/user-data/outputs/slide2-img.jpg
+python /mnt/skills/public/pptx-text-generation/scripts/generate_deck.py \
+    --plan-file /mnt/user-data/workspace/plan.json \
+    --output-file /mnt/user-data/outputs/presentation.pptx
 ```
 
-> **TIP**: Generate images that complement the slide content — abstract backgrounds for title slides, illustrative graphics for content slides, and data visualizations for stats slides. Always specify "no text" in image prompts since text will be added via PptxGenJS.
+That's it! The script automatically:
+1. Generates AI images via Gemini for slides with `image_prompt`
+2. Creates the PPTX with editable text, shapes, and the generated images
+3. Saves everything to the output path
+
+[!NOTE]
+Do NOT read the generate_deck.py script. Just create the plan JSON and call it with the parameters above.
 
 ---
 
-## Design Ideas
+## Slide Types
 
-**Don't create boring slides.** Consider these for each slide:
+### `title` — Title Slide
+Full-bleed AI background with dark overlay, centered title + subtitle.
 
-### Color Palettes
+### `content` — Content Slide
+Left-aligned title + bullet points, optional AI image on the right (or left with `"image_position": "left"`).
 
-| Theme | Primary | Secondary | Accent |
+### `stats` — Statistics Slide
+Big number callouts (up to 3) on dark background. Use `"image_prompt"` for background.
+
+### `cards` — Card Grid Slide
+Up to 3 cards with title + description on light background. Top accent bar.
+
+### `closing` — Closing Slide
+Full-bleed AI background with dark overlay, centered title + italic subtitle.
+
+---
+
+## Color Palettes
+
+| Theme | primary | secondary | accent |
 |-------|---------|-----------|--------|
-| **Midnight Executive** | `1E2761` (navy) | `CADCFC` (ice blue) | `FFFFFF` (white) |
-| **Forest & Moss** | `2C5F2D` (forest) | `97BC62` (moss) | `F5F5F5` (cream) |
-| **Coral Energy** | `F96167` (coral) | `F9E795` (gold) | `2F3C7E` (navy) |
-| **Warm Terracotta** | `B85042` (terracotta) | `E7E8D1` (sand) | `A7BEAE` (sage) |
-| **Ocean Gradient** | `065A82` (deep blue) | `1C7293` (teal) | `21295C` (midnight) |
-| **Charcoal Minimal** | `36454F` (charcoal) | `F2F2F2` (off-white) | `212121` (black) |
+| **Midnight Executive** | `1E2761` | `CADCFC` | `FFFFFF` |
+| **Forest & Moss** | `2C5F2D` | `97BC62` | `F5F5F5` |
+| **Coral Energy** | `F96167` | `F9E795` | `FFFFFF` |
+| **Warm Terracotta** | `B85042` | `E7E8D1` | `FFFFFF` |
+| **Ocean Gradient** | `065A82` | `1C7293` | `FFFFFF` |
+| **Charcoal Minimal** | `36454F` | `F2F2F2` | `FFFFFF` |
 
-### Layout Principles
+---
 
-- **Every slide needs a visual element** — icon, shape, chart, or image
-- Two-column, icon + text rows, or 2x2 grids work well
-- Large stat callouts (big numbers 60-72pt with small labels)
-- 0.5" minimum margins, leave breathing room
+## Image Prompt Tips
 
-### Typography
+- Always end with **"no text"** — real text is added by PptxGenJS
+- Include the primary color code for visual consistency: `"dark navy background (#1E2761)"`
+- Keep prompts specific: describe style, lighting, composition
+- Use abstract/illustrative styles — they work best as backgrounds
 
-| Element | Size |
-|---------|------|
-| Slide title | 36-44pt bold |
-| Section header | 20-24pt bold |
-| Body text | 14-16pt |
-| Captions | 10-12pt muted |
+---
 
-### Avoid
+## Advanced Usage
 
-- Don't repeat the same layout across slides
-- Don't center body text — left-align paragraphs
-- Don't default to blue — pick topic-specific colors
-- NEVER use `#` with hex colors (causes file corruption)
-- NEVER encode opacity in hex color strings
-- NEVER reuse option objects between calls (PptxGenJS mutates them)
+For full control over slide layouts, read [pptxgenjs.md](/mnt/skills/public/pptx-text-generation/pptxgenjs.md) and create a custom Node.js script. Pass the output path as `process.argv[2]`:
+
+```bash
+node /mnt/user-data/workspace/custom-script.js /mnt/user-data/outputs/deck.pptx
+```
 
 ---
 
@@ -239,13 +158,5 @@ node /mnt/user-data/workspace/create-pptx.js \
 
 After generation:
 - The PPTX file is saved in `/mnt/user-data/outputs/`
-- Share the file with user using `present_files` tool
+- Share with user using `present_files` tool
 - The file is **fully editable** in PowerPoint/Google Slides
-
----
-
-## Dependencies
-
-- `pptxgenjs` (npm) — creating presentations from scratch
-- `react-icons react react-dom sharp` (npm, optional) — for icons
-- `markitdown[pptx]` (pip, optional) — text extraction from existing files
