@@ -8,6 +8,7 @@ services:
       - "2026"
     labels:
       - "traefik.http.middlewares.deerflow-auth.basicauth.users=chuong:$2y$12$shpBXrZXqkoxY21d7YhWeOq7Y8M6jlYqO5cuFacXre6X3IWP2E/RC"
+      - "traefik.http.routers.https-0-bfypytp9rkzww2tlfiexe90f-nginx.middlewares=gzip,deerflow-auth"
     depends_on:
       frontend:
         condition: service_healthy

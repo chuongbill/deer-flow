@@ -45,6 +45,10 @@ COPY config.yaml* ./
 COPY extensions_config.json* ./
 COPY skills ./skills
 
+# Create skills symlink and user-data directories expected by skills
+RUN ln -s /app/skills /mnt/skills \
+    && mkdir -p /mnt/user-data/workspace /mnt/user-data/outputs /mnt/user-data/uploads
+
 # Install dependencies with cache mount
 RUN --mount=type=cache,target=/root/.cache/uv \
     sh -c "cd backend && uv sync"
