@@ -1,5 +1,5 @@
 # DeerFlow Production - Uses pre-built images from ghcr.io
-# Deploy via Coolify or: docker compose -f docker-compose.prod.yaml up -d
+# Deploy via Coolify with bind mounts for editable config files
 
 services:
   nginx:
@@ -29,6 +29,12 @@ services:
     container_name: deer-flow-gateway
     command: sh -c "cd backend && PYTHONPATH=. uv run uvicorn app.gateway.app:app --host 0.0.0.0 --port 8001 --workers 2"
     volumes:
+      - type: bind
+        source: ./config.yaml
+        target: /app/backend/config.yaml
+      - type: bind
+        source: ./extensions_config.json
+        target: /app/backend/extensions_config.json
       - deer-flow-data:/app/backend/.deer-flow
     working_dir: /app
     environment:
@@ -46,6 +52,12 @@ services:
     container_name: deer-flow-langgraph
     command: sh -c "cd /app/backend && uv run langgraph dev --no-browser --allow-blocking --no-reload --host 0.0.0.0 --port 2024"
     volumes:
+      - type: bind
+        source: ./config.yaml
+        target: /app/config.yaml
+      - type: bind
+        source: ./extensions_config.json
+        target: /app/extensions_config.json
       - deer-flow-data:/app/backend/.deer-flow
     environment:
       - CI=true
