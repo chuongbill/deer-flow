@@ -37,8 +37,13 @@ COPY --from=uv-source /uv /uvx /usr/local/bin/
 # Set working directory
 WORKDIR /app
 
-# Copy frontend source code
+# Copy backend source code
 COPY backend ./backend
+
+# Copy config files and skills (baked in for production)
+COPY config.yaml* ./
+COPY extensions_config.json* ./
+COPY skills ./skills
 
 # Install dependencies with cache mount
 RUN --mount=type=cache,target=/root/.cache/uv \

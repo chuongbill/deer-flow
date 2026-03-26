@@ -3,12 +3,10 @@
 
 services:
   nginx:
-    image: nginx:alpine
+    image: ghcr.io/chuongbill/deer-flow-nginx:latest
     container_name: deer-flow-nginx
-    ports:
-      - "${PORT:-2026}:2026"
-    volumes:
-      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    expose:
+      - "2026"
     depends_on:
       - frontend
       - gateway
@@ -31,9 +29,6 @@ services:
     container_name: deer-flow-gateway
     command: sh -c "cd backend && PYTHONPATH=. uv run uvicorn app.gateway.app:app --host 0.0.0.0 --port 8001 --workers 2"
     volumes:
-      - ./config.yaml:/app/backend/config.yaml:ro
-      - ./extensions_config.json:/app/backend/extensions_config.json:ro
-      - ./skills:/app/skills:ro
       - deer-flow-data:/app/backend/.deer-flow
     working_dir: /app
     environment:
@@ -51,9 +46,6 @@ services:
     container_name: deer-flow-langgraph
     command: sh -c "cd /app/backend && uv run langgraph dev --no-browser --allow-blocking --no-reload --host 0.0.0.0 --port 2024"
     volumes:
-      - ./config.yaml:/app/config.yaml:ro
-      - ./extensions_config.json:/app/extensions_config.json:ro
-      - ./skills:/app/skills:ro
       - deer-flow-data:/app/backend/.deer-flow
     environment:
       - CI=true
