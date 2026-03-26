@@ -21,7 +21,7 @@ services:
       - deer-flow
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "--user=chuong", "--password=deerflow2026", "http://localhost:2026"]
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:2026/healthz"]
       interval: 10s
       timeout: 5s
       retries: 3
