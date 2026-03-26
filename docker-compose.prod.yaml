@@ -1,0 +1,76 @@
+# DeerFlow Production - Uses pre-built images from ghcr.io
+# Deploy via Coolify or: docker compose -f docker-compose.prod.yaml up -d
+
+services:
+  nginx:
+    image: nginx:alpine
+    container_name: deer-flow-nginx
+    ports:
+      - "${PORT:-2026}:2026"
+    volumes:
+      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - frontend
+      - gateway
+      - langgraph
+    networks:
+      - deer-flow
+    restart: unless-stopped
+
+  frontend:
+    image: ghcr.io/chuongbill/deer-flow-frontend:latest
+    container_name: deer-flow-frontend
+    environment:
+      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
+    networks:
+      - deer-flow
+    restart: unless-stopped
+
+  gateway:
+    image: ghcr.io/chuongbill/deer-flow-backend:latest
+    container_name: deer-flow-gateway
+    command: sh -c "cd backend && PYTHONPATH=. uv run uvicorn app.gateway.app:app --host 0.0.0.0 --port 8001 --workers 2"
+    volumes:
+      - ./config.yaml:/app/backend/config.yaml:ro
+      - ./extensions_config.json:/app/backend/extensions_config.json:ro
+      - ./skills:/app/skills:ro
+      - deer-flow-data:/app/backend/.deer-flow
+    working_dir: /app
+    environment:
+      - CI=true
+      - DEER_FLOW_HOME=/app/backend/.deer-flow
+      - FIRECRAWL_API_KEY=${FIRECRAWL_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_BASE_URL=${OPENAI_BASE_URL}
+    networks:
+      - deer-flow
+    restart: unless-stopped
+
+  langgraph:
+    image: ghcr.io/chuongbill/deer-flow-backend:latest
+    container_name: deer-flow-langgraph
+    command: sh -c "cd /app/backend && uv run langgraph dev --no-browser --allow-blocking --no-reload --host 0.0.0.0 --port 2024"
+    volumes:
+      - ./config.yaml:/app/config.yaml:ro
+      - ./extensions_config.json:/app/extensions_config.json:ro
+      - ./skills:/app/skills:ro
+      - deer-flow-data:/app/backend/.deer-flow
+    environment:
+      - CI=true
+      - DEER_FLOW_HOME=/app/backend/.deer-flow
+      - DEER_FLOW_CONFIG_PATH=/app/config.yaml
+      - DEER_FLOW_EXTENSIONS_CONFIG_PATH=/app/extensions_config.json
+      - LANGCHAIN_TRACING_V2=${LANGCHAIN_TRACING_V2:-false}
+      - FIRECRAWL_API_KEY=${FIRECRAWL_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_BASE_URL=${OPENAI_BASE_URL}
+    networks:
+      - deer-flow
+    restart: unless-stopped
+
+volumes:
+  deer-flow-data:
+
+networks:
+  deer-flow:
+    driver: bridge
