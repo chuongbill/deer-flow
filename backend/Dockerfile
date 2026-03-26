@@ -46,6 +46,10 @@ COPY config.yaml* ./
 COPY extensions_config.json* ./
 COPY skills ./skills
 
+# Create /mnt/user-data directories - needed because scripts written by the agent
+# contain virtual paths as literal strings (not resolved by sandbox path mapping)
+RUN mkdir -p /mnt/user-data/workspace /mnt/user-data/outputs /mnt/user-data/uploads
+
 # Install dependencies with cache mount
 RUN --mount=type=cache,target=/root/.cache/uv \
     sh -c "cd backend && uv sync"
