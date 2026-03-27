@@ -1,4 +1,4 @@
-# DeerFlow Production Config (Coolify) - Direct Gemini API
+# DeerFlow Production Config (Coolify) - Native Gemini SDK
 config_version: 3
 log_level: warning
 
@@ -8,10 +8,9 @@ token_usage:
 models:
   - name: gemini-3.1-flash-lite-preview
     display_name: Gemini 3.1 Flash Lite (Cheapest)
-    use: deerflow.models.patched_openai:PatchedChatOpenAI
+    use: langchain_google_genai:ChatGoogleGenerativeAI
     model: gemini-3.1-flash-lite-preview
     api_key: $GEMINI_API_KEY
-    base_url: $GEMINI_BASE_URL
     max_tokens: 8192
     temperature: 0.7
     supports_thinking: false
@@ -19,10 +18,9 @@ models:
 
   - name: gemini-3-flash-preview
     display_name: Gemini 3 Flash
-    use: deerflow.models.patched_openai:PatchedChatOpenAI
+    use: langchain_google_genai:ChatGoogleGenerativeAI
     model: gemini-3-flash-preview
     api_key: $GEMINI_API_KEY
-    base_url: $GEMINI_BASE_URL
     max_tokens: 8192
     temperature: 0.7
     supports_thinking: false
@@ -30,19 +28,13 @@ models:
 
   - name: gemini-3.1-pro-preview
     display_name: Gemini 3.1 Pro (Thinking)
-    use: deerflow.models.patched_openai:PatchedChatOpenAI
+    use: langchain_google_genai:ChatGoogleGenerativeAI
     model: gemini-3.1-pro-preview
     api_key: $GEMINI_API_KEY
-    base_url: $GEMINI_BASE_URL
     max_tokens: 8192
     temperature: 0.7
     supports_thinking: true
     supports_vision: true
-    when_thinking_enabled:
-      extra_body:
-        thinking:
-          type: enabled
-          thinking_budget: 8192
 
 tool_groups:
   - name: web

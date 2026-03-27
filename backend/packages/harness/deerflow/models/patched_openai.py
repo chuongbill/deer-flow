@@ -1,38 +1,57 @@
-"""Patched ChatOpenAI that preserves thought_signature for Gemini models.
+"""Patched ChatOpenAI that preserves thought_signature for Gemini thinking models.
 
-When using Gemini via the OpenAI-compatible gateway (Google AI Studio, Vertex,
-or any proxy), the API requires that the ``thought_signature`` field on
-tool-call objects is echoed back verbatim in every subsequent request.
+When using Gemini with thinking enabled via an OpenAI-compatible gateway (e.g.
+Vertex AI, Google AI Studio, or any proxy), the API requires that the
+``thought_signature`` field on tool-call objects is echoed back verbatim in
+every subsequent request.
 
-The standard ``langchain_openai.ChatOpenAI`` streaming path drops
-``thought_signature`` from streaming chunks during accumulation.  This module
-fixes the problem in two ways:
+The OpenAI-compatible gateway stores the raw tool-call dicts (including
+``thought_signature``) in ``additional_kwargs["tool_calls"]``, but standard
+``langchain_openai.ChatOpenAI`` only serialises the standard fields (``id``,
+``type``, ``function``) into the outgoing payload, silently dropping the
+signature.  That causes an HTTP 400 ``INVALID_ARGUMENT`` error:
 
-1. ``_get_request_payload`` re-injects signatures into the outgoing payload.
-2. ``_astream`` uses non-streaming internally to ensure ``thought_signature``
-   is fully preserved in the response ``AIMessage.additional_kwargs``.
+    Unable to submit request because function call `<tool>` in the N. content
+    block is missing a `thought_signature`.
+
+This module fixes the problem by overriding ``_get_request_payload`` to
+re-inject tool-call signatures back into the outgoing payload for any assistant
+message that originally carried them.
 """
 
 from __future__ import annotations
 
-import logging
-from typing import Any, AsyncIterator
+from typing import Any
 
-from langchain_core.callbacks import AsyncCallbackManagerForLLMRun
 from langchain_core.language_models import LanguageModelInput
-from langchain_core.messages import AIMessage, AIMessageChunk, BaseMessage
-from langchain_core.outputs import ChatGenerationChunk
+from langchain_core.messages import AIMessage
 from langchain_openai import ChatOpenAI
-
-logger = logging.getLogger(__name__)
 
 
 class PatchedChatOpenAI(ChatOpenAI):
-    """ChatOpenAI with ``thought_signature`` preservation for Gemini via OpenAI gateway.
+    """ChatOpenAI with ``thought_signature`` preservation for Gemini thinking via OpenAI gateway.
 
-    Overrides both ``_get_request_payload`` (to restore signatures on outgoing
-    payloads) and ``_astream`` (to use non-streaming internally so that
-    ``thought_signature`` fields survive the response→AIMessage conversion).
+    When using Gemini with thinking enabled via an OpenAI-compatible gateway,
+    the API expects ``thought_signature`` to be present on tool-call objects in
+    multi-turn conversations.  This patched version restores those signatures
+    from ``AIMessage.additional_kwargs["tool_calls"]`` into the serialised
+    request payload before it is sent to the API.
+
+    Usage in ``config.yaml``::
+
+        - name: gemini-2.5-pro-thinking
+          display_name: Gemini 2.5 Pro (Thinking)
+          use: deerflow.models.patched_openai:PatchedChatOpenAI
+          model: google/gemini-2.5-pro-preview
+          api_key: $GEMINI_API_KEY
+          base_url: https://<your-openai-compat-gateway>/v1
+          max_tokens: 16384
+          supports_thinking: true
+          supports_vision: true
+          when_thinking_enabled:
+            extra_body:
+              thinking:
+                type: enabled
     """
 
     def _get_request_payload(
@@ -42,9 +61,20 @@ class PatchedChatOpenAI(ChatOpenAI):
         stop: list[str] | None = None,
         **kwargs: Any,
     ) -> dict:
-        """Get request payload with ``thought_signature`` preserved."""
+        """Get request payload with ``thought_signature`` preserved on tool-call objects.
+
+        Overrides the parent method to re-inject ``thought_signature`` fields
+        on tool-call objects that were stored in
+        ``additional_kwargs["tool_calls"]`` by LangChain but dropped during
+        serialisation.
+        """
+        # Capture the original LangChain messages *before* conversion so we can
+        # access fields that the serialiser might drop.
         original_messages = self._convert_input(input_).to_messages()
+
+        # Obtain the base payload from the parent implementation.
         payload = super()._get_request_payload(input_, stop=stop, **kwargs)
+
         payload_messages = payload.get("messages", [])
 
         if len(payload_messages) == len(original_messages):
@@ -52,6 +82,7 @@ class PatchedChatOpenAI(ChatOpenAI):
                 if payload_msg.get("role") == "assistant" and isinstance(orig_msg, AIMessage):
                     _restore_tool_call_signatures(payload_msg, orig_msg)
         else:
+            # Fallback: match assistant-role entries positionally against AIMessages.
             ai_messages = [m for m in original_messages if isinstance(m, AIMessage)]
             assistant_payloads = [
                 (i, m) for i, m in enumerate(payload_messages) if m.get("role") == "assistant"
@@ -61,72 +92,27 @@ class PatchedChatOpenAI(ChatOpenAI):
 
         return payload
 
-    async def _astream(
-        self,
-        messages: list[BaseMessage],
-        stop: list[str] | None = None,
-        run_manager: AsyncCallbackManagerForLLMRun | None = None,
-        **kwargs: Any,
-    ) -> AsyncIterator[ChatGenerationChunk]:
-        """Stream via non-streaming call to preserve thought_signatures.
-
-        Gemini's streaming response drops ``thought_signature`` during chunk
-        accumulation. By using non-streaming internally, we ensure the full
-        response (with all fields) is captured and stored in AIMessage
-        additional_kwargs for the next turn.
-
-        LangGraph still gets a "stream" (of one chunk), so the pipeline works.
-        """
-        # Use the non-streaming path which preserves all response fields
-        result = await self._agenerate(
-            messages, stop=stop, run_manager=run_manager, **kwargs
-        )
-
-        if result.generations and result.generations[0]:
-            generation = result.generations[0]
-            msg = generation.message
-
-            # Convert to a chunk for stream compatibility
-            chunk = ChatGenerationChunk(
-                message=AIMessageChunk(
-                    content=msg.content,
-                    additional_kwargs=msg.additional_kwargs,
-                    response_metadata=msg.response_metadata if hasattr(msg, "response_metadata") else {},
-                    tool_call_chunks=[],
-                    id=msg.id,
-                ),
-                generation_info=generation.generation_info,
-            )
-
-            # Also emit tool_call_chunks if there are tool calls
-            if msg.tool_calls:
-                chunk.message.tool_call_chunks = [
-                    {
-                        "name": tc.get("name", ""),
-                        "args": tc.get("args", ""),
-                        "id": tc.get("id", ""),
-                        "index": idx,
-                    }
-                    for idx, tc in enumerate(msg.tool_calls)
-                ]
-
-            if run_manager:
-                await run_manager.on_llm_new_token(
-                    chunk.text if chunk.text else "",
-                    chunk=chunk,
-                )
-
-            yield chunk
-
 
 def _restore_tool_call_signatures(payload_msg: dict, orig_msg: AIMessage) -> None:
-    """Re-inject ``thought_signature`` onto tool-call objects in *payload_msg*."""
+    """Re-inject ``thought_signature`` onto tool-call objects in *payload_msg*.
+
+    When the Gemini OpenAI-compatible gateway returns a response with function
+    calls, each tool-call object may carry a ``thought_signature``.  LangChain
+    stores the raw tool-call dicts in ``additional_kwargs["tool_calls"]`` but
+    only serialises the standard fields (``id``, ``type``, ``function``) into
+    the outgoing payload, silently dropping the signature.
+
+    This function matches raw tool-call entries (by ``id``, falling back to
+    positional order) and copies the signature back onto the serialised
+    payload entries.
+    """
     raw_tool_calls: list[dict] = orig_msg.additional_kwargs.get("tool_calls") or []
     payload_tool_calls: list[dict] = payload_msg.get("tool_calls") or []
 
     if not raw_tool_calls or not payload_tool_calls:
         return
 
+    # Build an id → raw_tc lookup for efficient matching.
     raw_by_id: dict[str, dict] = {}
     for raw_tc in raw_tool_calls:
         tc_id = raw_tc.get("id")
@@ -134,6 +120,7 @@ def _restore_tool_call_signatures(payload_msg: dict, orig_msg: AIMessage) -> Non
             raw_by_id[tc_id] = raw_tc
 
     for idx, payload_tc in enumerate(payload_tool_calls):
+        # Try matching by id first, then fall back to positional.
         raw_tc = raw_by_id.get(payload_tc.get("id", ""))
         if raw_tc is None and idx < len(raw_tool_calls):
             raw_tc = raw_tool_calls[idx]
@@ -141,6 +128,7 @@ def _restore_tool_call_signatures(payload_msg: dict, orig_msg: AIMessage) -> Non
         if raw_tc is None:
             continue
 
+        # The gateway may use either snake_case or camelCase.
         sig = raw_tc.get("thought_signature") or raw_tc.get("thoughtSignature")
         if sig:
             payload_tc["thought_signature"] = sig
