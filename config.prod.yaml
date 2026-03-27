@@ -42,7 +42,6 @@ models:
       extra_body:
         thinking:
           type: enabled
-          thinking_budget: 8192
 
 tool_groups:
   - name: web
