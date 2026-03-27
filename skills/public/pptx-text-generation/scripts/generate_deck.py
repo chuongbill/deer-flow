@@ -217,7 +217,7 @@ def build_nodejs_script(plan: dict, image_map: dict, output_path: str) -> str:
     }});
     let img = {img_js};
     if (img && fs.existsSync(img)) {{
-      sl.addImage({{ path: img, x: {img_x}, y: 0.3, w: 4.2, h: 5.0 }});
+      sl.addImage({{ path: img, x: {img_x}, y: 0.3, w: 4.2, h: 5.0, sizing: {{ type: "cover", w: 4.2, h: 5.0 }} }});
     }}
   }})();
 """)
