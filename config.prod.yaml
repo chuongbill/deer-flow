@@ -42,6 +42,7 @@ models:
       extra_body:
         thinking:
           type: enabled
+          thinking_budget: 4096
 
 tool_groups:
   - name: web
@@ -53,7 +54,7 @@ tools:
   - name: web_search
     group: web
     use: deerflow.community.ddg_search.tools:web_search_tool
-    max_results: 5
+    max_results: 3
     timeout: 10
 
   - name: web_fetch
@@ -64,7 +65,7 @@ tools:
   - name: image_search
     group: web
     use: deerflow.community.image_search.tools:image_search_tool
-    max_results: 5
+    max_results: 3
     timeout: 10
 
   - name: ls
@@ -111,11 +112,11 @@ summarization:
   model_name: null
   trigger:
     - type: tokens
-      value: 32000
+      value: 16000
   keep:
     type: messages
-    value: 15
-  trim_tokens_to_summarize: 32000
+    value: 10
+  trim_tokens_to_summarize: 16000
   summary_prompt: null
 
 memory:
