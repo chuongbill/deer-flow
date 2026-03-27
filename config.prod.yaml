@@ -54,15 +54,18 @@ tools:
     group: web
     use: deerflow.community.firecrawl.tools:web_search_tool
     max_results: 5
+    timeout: 10
 
   - name: web_fetch
     group: web
     use: deerflow.community.firecrawl.tools:web_fetch_tool
+    timeout: 10
 
   - name: image_search
     group: web
     use: deerflow.community.image_search.tools:image_search_tool
     max_results: 5
+    timeout: 10
 
   - name: ls
     group: file:read
@@ -83,6 +86,10 @@ tools:
   - name: bash
     group: bash
     use: deerflow.sandbox.tools:bash_tool
+    timeout: 30
+
+subagents:
+  timeout_seconds: 300
 
 tool_search:
   enabled: false
