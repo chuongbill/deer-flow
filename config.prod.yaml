@@ -58,7 +58,7 @@ tools:
 
   - name: web_fetch
     group: web
-    use: deerflow.community.firecrawl.tools:web_fetch_tool
+    use: deerflow.community.jina_ai.tools:web_fetch_tool
     timeout: 10
 
   - name: image_search
