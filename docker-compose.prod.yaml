@@ -60,6 +60,8 @@ services:
       - GEMINI_BASE_URL=${GEMINI_BASE_URL:-https://generativelanguage.googleapis.com/v1beta/openai/}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - OPENAI_BASE_URL=${OPENAI_BASE_URL}
+      - ROUTER9_API_KEY=${ROUTER9_API_KEY}
+      - ROUTER9_BASE_URL=${ROUTER9_BASE_URL}
     networks:
       - deer-flow
     restart: unless-stopped
@@ -92,6 +94,8 @@ services:
       - GEMINI_BASE_URL=${GEMINI_BASE_URL:-https://generativelanguage.googleapis.com/v1beta/openai/}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - OPENAI_BASE_URL=${OPENAI_BASE_URL}
+      - ROUTER9_API_KEY=${ROUTER9_API_KEY}
+      - ROUTER9_BASE_URL=${ROUTER9_BASE_URL}
     networks:
       - deer-flow
     restart: unless-stopped

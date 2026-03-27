@@ -42,7 +42,73 @@ models:
       extra_body:
         thinking:
           type: enabled
-          thinking_budget: 4096
+          thinking_budget: 8192
+
+  # ── 9Router Models (OpenAI-compatible codex) ──────────────────────────────
+  - name: cx-gpt-5.4
+    display_name: "GPT-5.4 (9Router)"
+    use: deerflow.models.patched_openai:PatchedChatOpenAI
+    model: cx/gpt-5.4
+    api_key: $ROUTER9_API_KEY
+    base_url: $ROUTER9_BASE_URL
+    max_tokens: 8192
+    temperature: 0.7
+    supports_thinking: true
+    supports_vision: true
+    when_thinking_enabled:
+      extra_body:
+        thinking:
+          type: enabled
+          thinking_budget: 8192
+
+  - name: cx-gpt-5.3-codex-high
+    display_name: "GPT-5.3 Codex High (9Router)"
+    use: deerflow.models.patched_openai:PatchedChatOpenAI
+    model: cx/gpt-5.3-codex-high
+    api_key: $ROUTER9_API_KEY
+    base_url: $ROUTER9_BASE_URL
+    max_tokens: 8192
+    temperature: 0.7
+    supports_thinking: true
+    supports_vision: true
+    when_thinking_enabled:
+      extra_body:
+        thinking:
+          type: enabled
+          thinking_budget: 8192
+
+  - name: cx-gpt-5.3-codex
+    display_name: "GPT-5.3 Codex (9Router)"
+    use: deerflow.models.patched_openai:PatchedChatOpenAI
+    model: cx/gpt-5.3-codex
+    api_key: $ROUTER9_API_KEY
+    base_url: $ROUTER9_BASE_URL
+    max_tokens: 8192
+    temperature: 0.7
+    supports_thinking: true
+    supports_vision: true
+    when_thinking_enabled:
+      extra_body:
+        thinking:
+          type: enabled
+          thinking_budget: 8192
+
+  - name: cx-gpt-5.3-codex-spark
+    display_name: "GPT-5.3 Codex Spark (9Router)"
+    use: deerflow.models.patched_openai:PatchedChatOpenAI
+    model: cx/gpt-5.3-codex-spark
+    api_key: $ROUTER9_API_KEY
+    base_url: $ROUTER9_BASE_URL
+    max_tokens: 8192
+    temperature: 0.7
+    supports_thinking: true
+    supports_vision: true
+    when_thinking_enabled:
+      extra_body:
+        thinking:
+          type: enabled
+          thinking_budget: 8192
+
 
 tool_groups:
   - name: web
@@ -54,7 +120,7 @@ tools:
   - name: web_search
     group: web
     use: deerflow.community.ddg_search.tools:web_search_tool
-    max_results: 3
+    max_results: 5
     timeout: 10
 
   - name: web_fetch
@@ -65,7 +131,7 @@ tools:
   - name: image_search
     group: web
     use: deerflow.community.image_search.tools:image_search_tool
-    max_results: 3
+    max_results: 5
     timeout: 10
 
   - name: ls
