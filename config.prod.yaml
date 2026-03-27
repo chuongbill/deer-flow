@@ -1,4 +1,4 @@
-# DeerFlow Production Config (Coolify)
+# DeerFlow Production Config (Coolify) - Direct Gemini API
 config_version: 3
 log_level: warning
 
@@ -10,60 +10,19 @@ models:
     display_name: Gemini 3 Flash
     use: langchain_openai:ChatOpenAI
     model: gemini-3-flash
-    api_key: $OPENAI_API_KEY
-    base_url: $OPENAI_BASE_URL
+    api_key: $GEMINI_API_KEY
+    base_url: https://generativelanguage.googleapis.com/v1beta/openai/
     max_tokens: 8192
     temperature: 0.7
     supports_thinking: false
     supports_vision: true
 
-  - name: gemini-3.1-pro-high
-    display_name: Gemini 3.1 Pro (High)
-    use: deerflow.models.patched_openai:PatchedChatOpenAI
-    model: gemini-3.1-pro-high
-    api_key: $OPENAI_API_KEY
-    base_url: $OPENAI_BASE_URL
-    max_tokens: 8192
-    temperature: 0.7
-    supports_thinking: true
-    supports_vision: true
-    when_thinking_enabled:
-      extra_body:
-        thinking:
-          type: enabled
-
-  - name: gemini-3.1-pro-low
-    display_name: Gemini 3.1 Pro (Low)
-    use: deerflow.models.patched_openai:PatchedChatOpenAI
-    model: gemini-3.1-pro-low
-    api_key: $OPENAI_API_KEY
-    base_url: $OPENAI_BASE_URL
-    max_tokens: 8192
-    temperature: 0.7
-    supports_thinking: true
-    supports_vision: true
-    when_thinking_enabled:
-      extra_body:
-        thinking:
-          type: enabled
-
-  - name: claude-sonnet-4-6
-    display_name: Claude Sonnet 4.6
+  - name: gemini-3.1-pro
+    display_name: Gemini 3.1 Pro
     use: langchain_openai:ChatOpenAI
-    model: claude-sonnet-4-6
-    api_key: $OPENAI_API_KEY
-    base_url: $OPENAI_BASE_URL
-    max_tokens: 8192
-    temperature: 0.7
-    supports_thinking: true
-    supports_vision: true
-
-  - name: claude-opus-4-6-thinking
-    display_name: Claude Opus 4.6 (Thinking)
-    use: langchain_openai:ChatOpenAI
-    model: claude-opus-4-6-thinking
-    api_key: $OPENAI_API_KEY
-    base_url: $OPENAI_BASE_URL
+    model: gemini-3.1-pro
+    api_key: $GEMINI_API_KEY
+    base_url: https://generativelanguage.googleapis.com/v1beta/openai/
     max_tokens: 8192
     temperature: 0.7
     supports_thinking: true
