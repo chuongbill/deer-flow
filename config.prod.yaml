@@ -12,7 +12,6 @@ models:
     model: gemini-3.1-flash-lite-preview
     api_key: $OPENAI_API_KEY
     base_url: $OPENAI_BASE_URL
-    max_tokens: 8192
     temperature: 0.7
     supports_thinking: false
     supports_vision: true
@@ -23,7 +22,6 @@ models:
     model: gemini-3-flash-preview
     api_key: $OPENAI_API_KEY
     base_url: $OPENAI_BASE_URL
-    max_tokens: 8192
     temperature: 0.7
     supports_thinking: false
     supports_vision: true
@@ -34,7 +32,6 @@ models:
     model: gemini-3.1-pro-preview
     api_key: $OPENAI_API_KEY
     base_url: $OPENAI_BASE_URL
-    max_tokens: 8192
     temperature: 0.7
     supports_thinking: true
     supports_vision: true
@@ -51,7 +48,6 @@ models:
     model: cx/gpt-5.4
     api_key: $ROUTER9_API_KEY
     base_url: $ROUTER9_BASE_URL
-    max_tokens: 8192
     temperature: 0.7
     supports_thinking: true
     supports_vision: true
@@ -67,7 +63,6 @@ models:
     model: cx/gpt-5.3-codex-high
     api_key: $ROUTER9_API_KEY
     base_url: $ROUTER9_BASE_URL
-    max_tokens: 8192
     temperature: 0.7
     supports_thinking: true
     supports_vision: true
@@ -83,7 +78,6 @@ models:
     model: cx/gpt-5.3-codex
     api_key: $ROUTER9_API_KEY
     base_url: $ROUTER9_BASE_URL
-    max_tokens: 8192
     temperature: 0.7
     supports_thinking: true
     supports_vision: true
@@ -93,14 +87,13 @@ models:
           type: enabled
           thinking_budget: 8192
 
-  - name: cx-gpt-5.3-codex-spark
-    display_name: "GPT-5.3 Codex Spark (9Router)"
+  # ── GitHub Copilot Models (via 9Router, gh/ prefix) ───────────────────────
+  - name: gh-claude-sonnet-4.6
+    display_name: "Claude Sonnet 4.6 (GitHub)"
     use: deerflow.models.patched_openai:PatchedChatOpenAI
-    model: cx/gpt-5.3-codex-spark
+    model: gh/claude-sonnet-4.6
     api_key: $ROUTER9_API_KEY
     base_url: $ROUTER9_BASE_URL
-    max_tokens: 8192
-    temperature: 0.7
     supports_thinking: true
     supports_vision: true
     when_thinking_enabled:
@@ -109,6 +102,42 @@ models:
           type: enabled
           thinking_budget: 8192
 
+  - name: gh-claude-opus-4.6
+    display_name: "Claude Opus 4.6 (GitHub)"
+    use: deerflow.models.patched_openai:PatchedChatOpenAI
+    model: gh/claude-opus-4.6
+    api_key: $ROUTER9_API_KEY
+    base_url: $ROUTER9_BASE_URL
+    supports_thinking: true
+    supports_vision: true
+    when_thinking_enabled:
+      extra_body:
+        thinking:
+          type: enabled
+          thinking_budget: 8192
+
+  - name: gh-gemini-3-flash-preview
+    display_name: "Gemini 3 Flash (GitHub)"
+    use: langchain_openai:ChatOpenAI
+    model: gh/gemini-3-flash-preview
+    api_key: $ROUTER9_API_KEY
+    base_url: $ROUTER9_BASE_URL
+    supports_thinking: false
+    supports_vision: true
+
+  - name: gh-gpt-5.4
+    display_name: "GPT-5.4 (GitHub)"
+    use: deerflow.models.patched_openai:PatchedChatOpenAI
+    model: gh/gpt-5.4
+    api_key: $ROUTER9_API_KEY
+    base_url: $ROUTER9_BASE_URL
+    supports_thinking: true
+    supports_vision: true
+    when_thinking_enabled:
+      extra_body:
+        thinking:
+          type: enabled
+          thinking_budget: 8192
 
 tool_groups:
   - name: web
@@ -119,14 +148,12 @@ tool_groups:
 tools:
   - name: web_search
     group: web
-    use: deerflow.community.ddg_search.tools:web_search_tool
+    use: deerflow.community.firecrawl.tools:web_search_tool
     max_results: 5
-    timeout: 10
 
   - name: web_fetch
     group: web
-    use: deerflow.community.jina_ai.tools:web_fetch_tool
-    timeout: 10
+    use: deerflow.community.firecrawl.tools:web_fetch_tool
 
   - name: image_search
     group: web
@@ -153,10 +180,10 @@ tools:
   - name: bash
     group: bash
     use: deerflow.sandbox.tools:bash_tool
-    timeout: 30
+    timeout: 60
 
 subagents:
-  timeout_seconds: 300
+  timeout_seconds: 600
 
 tool_search:
   enabled: false
@@ -175,13 +202,13 @@ title:
 
 summarization:
   enabled: true
-  model_name: null
+  model_name: cx-gpt-5.3-codex
   trigger:
     - type: tokens
       value: 16000
   keep:
     type: messages
-    value: 10
+    value: 15
   trim_tokens_to_summarize: 16000
   summary_prompt: null
 
@@ -189,7 +216,7 @@ memory:
   enabled: true
   storage_path: .deer-flow/memory.json
   debounce_seconds: 30
-  model_name: null
+  model_name: cx-gpt-5.3-codex
   max_facts: 100
   fact_confidence_threshold: 0.7
   injection_enabled: true
