@@ -28,7 +28,7 @@ RUN apt-get update && apt-get install -y \
     && apt-get update \
     && apt-get install -y nodejs \
     && rm -rf /var/lib/apt/lists/* \
-    && npm install -g pptxgenjs
+    && npm install -g pptxgenjs react-icons react react-dom sharp
 
 # Ensure Node.js can find globally installed packages from any working directory
 ENV NODE_PATH=/usr/lib/node_modules

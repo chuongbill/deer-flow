@@ -167,14 +167,23 @@ slide.addImage({
 
 ### Image Sizing Modes
 
+**⚠️ ALWAYS specify `sizing`.** Without it, the image is **stretched** to exactly match `w` × `h`, distorting the aspect ratio. This is the #1 cause of visual bugs in presentations.
+
 ```javascript
-// Contain - fit inside, preserve ratio
-{ sizing: { type: 'contain', w: 4, h: 3 } }
+// ❌ WRONG — stretches image to 5×3, distorting aspect ratio
+slide.addImage({ path: "photo.png", x: 1, y: 1, w: 5, h: 3 });
 
-// Cover - fill area, preserve ratio (may crop)
-{ sizing: { type: 'cover', w: 4, h: 3 } }
+// ✅ Cover — fills the area, crops excess (best for backgrounds and panels)
+slide.addImage({ path: "photo.png", x: 1, y: 1, w: 5, h: 3,
+  sizing: { type: "cover", w: 5, h: 3 }
+});
 
-// Crop - cut specific portion
+// ✅ Contain — fits inside the area, preserves full image (best for logos and diagrams)
+slide.addImage({ path: "photo.png", x: 1, y: 1, w: 5, h: 3,
+  sizing: { type: "contain", w: 5, h: 3 }
+});
+
+// Crop — cut a specific portion of the source image
 { sizing: { type: 'crop', x: 0.5, y: 0.5, w: 2, h: 2 } }
 ```
 
@@ -407,6 +416,17 @@ titleSlide.addText("My Title", { placeholder: "title" });
    // ✅ CORRECT: Use RECTANGLE for clean alignment
    slide.addShape(pres.shapes.RECTANGLE, { x: 1, y: 1, w: 3, h: 1.5, fill: { color: "FFFFFF" } });
    slide.addShape(pres.shapes.RECTANGLE, { x: 1, y: 1, w: 0.08, h: 1.5, fill: { color: "0891B2" } });
+   ```
+
+9. **ALWAYS use `sizing` on images** — without it, PptxGenJS stretches the image to exactly fit `w` × `h`, distorting the aspect ratio. This is the most common visual bug.
+   ```javascript
+   // ❌ WRONG: Stretches image, distorts aspect ratio
+   slide.addImage({ path: "photo.png", x: 1, y: 1, w: 5, h: 3 });
+
+   // ✅ CORRECT: Fills area, crops excess, preserves ratio
+   slide.addImage({ path: "photo.png", x: 1, y: 1, w: 5, h: 3,
+     sizing: { type: "cover", w: 5, h: 3 }
+   });
    ```
 
 ---
