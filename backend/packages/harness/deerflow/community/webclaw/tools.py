@@ -103,9 +103,6 @@ def web_fetch_tool(url: str) -> str:
     except json.JSONDecodeError:
         return "Error: Failed to parse webclaw output"
     except FileNotFoundError:
-        return (
-            "Error: webclaw binary not found. "
-            "Install it: cargo install --git https://github.com/0xMassi/webclaw.git webclaw-cli"
-        )
+        return "Error: webclaw binary not found. Install it: cargo install --git https://github.com/0xMassi/webclaw.git webclaw-cli"
     except Exception as e:
         return f"Error: {str(e)}"
