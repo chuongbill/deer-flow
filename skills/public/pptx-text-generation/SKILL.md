@@ -5,6 +5,8 @@ description: "Use this skill to create professional, editable PowerPoint present
 
 # PPTX Text-Based Generation Skill
 
+> **How this skill works:** You have all the tools you need. Use `write_file` to create a plan JSON or Node.js script → `bash` to run `generate_deck.py` or `node` → `present_files` to deliver the PPTX. No special tools required.
+
 ## Quick Reference
 
 | Task | Guide |
@@ -24,7 +26,7 @@ The simplest path: create a **plan JSON file** and run one command.
 
 ### Step 1: Create Plan JSON
 
-Write a plan file to `/mnt/user-data/workspace/plan.json`:
+Use `write_file` tool to write a plan file to `/mnt/user-data/workspace/plan.json`:
 
 ```json
 {
@@ -84,7 +86,7 @@ Write a plan file to `/mnt/user-data/workspace/plan.json`:
 }
 ```
 
-### Step 2: Run the Generator
+### Step 2: Run the Generator (use `bash` tool)
 
 ```bash
 python /mnt/skills/public/pptx-text-generation/scripts/generate_deck.py \
@@ -97,8 +99,12 @@ That's it! The script automatically:
 2. Creates the PPTX with editable text, shapes, and the generated images
 3. Saves everything to the output path
 
-[!NOTE]
-Do NOT read the generate_deck.py script. Just create the plan JSON and call it with the parameters above.
+### Step 3: Deliver to user (use `present_files` tool)
+
+Present the generated PPTX file at `/mnt/user-data/outputs/presentation.pptx` to the user.
+
+> [!NOTE]
+> Do NOT read the generate_deck.py script. Just create the plan JSON and call it with the parameters above.
 
 ---
 
@@ -135,11 +141,13 @@ For layouts beyond the 5 built-in types (timeline, quote, two-column with icons,
 - **Quote** — large quote with attribution
 - **Conclusion/CTA** — closing slide with contact
 
-Pass the output path as `process.argv[2]`:
-
+**Workflow:**
+1. Use `write_file` to create a Node.js script at `/mnt/user-data/workspace/build_deck.js`
+2. Use `bash` to run it:
 ```bash
-node /mnt/user-data/workspace/custom-script.js /mnt/user-data/outputs/deck.pptx
+NODE_PATH=/usr/lib/node_modules node /mnt/user-data/workspace/build_deck.js /mnt/user-data/outputs/deck.pptx
 ```
+3. Use `present_files` to deliver the PPTX
 
 ---
 

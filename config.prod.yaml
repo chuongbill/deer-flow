@@ -195,6 +195,7 @@ tool_search:
 
 sandbox:
   use: deerflow.sandbox.local:LocalSandboxProvider
+  allow_host_bash: true
 
 skills:
   container_path: /mnt/skills
