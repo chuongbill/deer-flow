@@ -36,6 +36,9 @@ ENV NODE_PATH=/usr/lib/node_modules
 # Install Docker CLI (for DooD: allows starting sandbox containers via host Docker socket)
 COPY --from=docker:cli /usr/local/bin/docker /usr/local/bin/docker
 
+# Install webclaw CLI (Rust-based web extraction, 95% accuracy, 67% fewer tokens)
+COPY --from=ghcr.io/0xmassi/webclaw:latest /usr/local/bin/webclaw /usr/local/bin/webclaw
+
 # Install uv (source image overridable via UV_IMAGE build arg)
 COPY --from=uv-source /uv /uvx /usr/local/bin/
 

@@ -146,14 +146,19 @@ tool_groups:
   - name: bash
 
 tools:
+  # Web search (self-hosted SearXNG — aggregates Google, Bing, DDG, and more)
   - name: web_search
     group: web
-    use: deerflow.community.firecrawl.tools:web_search_tool
+    use: deerflow.community.searxng.tools:web_search_tool
+    base_url: http://searxng:8080
     max_results: 5
 
+  # Web fetch (self-hosted Webclaw CLI — 67% fewer tokens, 95% accuracy)
   - name: web_fetch
     group: web
-    use: deerflow.community.firecrawl.tools:web_fetch_tool
+    use: deerflow.community.webclaw.tools:web_fetch_tool
+    webclaw_bin: /usr/local/bin/webclaw
+    timeout: 30
 
   - name: image_search
     group: web

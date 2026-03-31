@@ -2,6 +2,21 @@
 # Deploy via Coolify with bind mounts for editable config files
 
 services:
+  searxng:
+    image: searxng/searxng:latest
+    volumes:
+      - type: bind
+        source: ./docker/searxng/settings.yml
+        target: /etc/searxng/settings.yml
+    networks:
+      - deer-flow
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8080"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
   nginx:
     image: ghcr.io/chuongbill/deer-flow-nginx:latest
     expose:
@@ -55,7 +70,6 @@ services:
     environment:
       - CI=true
       - DEER_FLOW_HOME=/app/backend/.deer-flow
-      - FIRECRAWL_API_KEY=${FIRECRAWL_API_KEY}
       - GEMINI_API_KEY=${GEMINI_API_KEY}
       - GEMINI_BASE_URL=${GEMINI_BASE_URL:-https://generativelanguage.googleapis.com/v1beta/openai/}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
@@ -89,7 +103,6 @@ services:
       - DEER_FLOW_CONFIG_PATH=/app/config.yaml
       - DEER_FLOW_EXTENSIONS_CONFIG_PATH=/app/extensions_config.json
       - LANGCHAIN_TRACING_V2=${LANGCHAIN_TRACING_V2:-false}
-      - FIRECRAWL_API_KEY=${FIRECRAWL_API_KEY}
       - GEMINI_API_KEY=${GEMINI_API_KEY}
       - GEMINI_BASE_URL=${GEMINI_BASE_URL:-https://generativelanguage.googleapis.com/v1beta/openai/}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
