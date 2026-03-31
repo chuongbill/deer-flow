@@ -43,10 +43,12 @@ jobs:
 
           for tool in config.get("tools", []):
               if tool.get("name") == "web_search":
-                  tool["use"] = "deerflow.community.firecrawl.tools:web_search_tool"
+                  tool["use"] = "deerflow.community.searxng.tools:web_search_tool"
+                  tool["base_url"] = "http://searxng:8080"
               elif tool.get("name") == "web_fetch":
-                  tool["use"] = "deerflow.community.firecrawl.tools:web_fetch_tool"
-                  tool.pop("timeout", None)
+                  tool["use"] = "deerflow.community.webclaw.tools:web_fetch_tool"
+                  tool["webclaw_bin"] = "/usr/local/bin/webclaw"
+                  tool["timeout"] = 30
 
           with open("config.yaml", "w") as f:
               yaml.dump(config, f, default_flow_style=False, allow_unicode=True, sort_keys=False)
