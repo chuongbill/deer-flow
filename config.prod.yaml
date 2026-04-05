@@ -1,5 +1,5 @@
 # DeerFlow Production Config (Coolify) - via LiteLLM Proxy
-config_version: 3
+config_version: 5
 log_level: warning
 
 token_usage:

@@ -70,6 +70,8 @@ services:
     environment:
       - CI=true
       - DEER_FLOW_HOME=/app/backend/.deer-flow
+      - DEER_FLOW_CONFIG_PATH=/app/backend/config.yaml
+      - DEER_FLOW_EXTENSIONS_CONFIG_PATH=/app/backend/extensions_config.json
       - GEMINI_API_KEY=${GEMINI_API_KEY}
       - GEMINI_BASE_URL=${GEMINI_BASE_URL:-https://generativelanguage.googleapis.com/v1beta/openai/}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
@@ -88,7 +90,7 @@ services:
 
   langgraph:
     image: ghcr.io/chuongbill/deer-flow-backend:latest
-    command: sh -c "cd /app/backend && uv run langgraph dev --no-browser --allow-blocking --no-reload --host 0.0.0.0 --port 2024"
+    command: sh -c 'cd /app/backend && allow_blocking_flag="" && if [ "${LANGGRAPH_ALLOW_BLOCKING:-0}" = "1" ]; then allow_blocking_flag="--allow-blocking"; fi && uv run langgraph dev --no-browser ${allow_blocking_flag} --no-reload --host 0.0.0.0 --port 2024 --n-jobs-per-worker ${LANGGRAPH_JOBS_PER_WORKER:-10}'
     volumes:
       - type: bind
         source: ./config.yaml
