@@ -4,7 +4,7 @@
 ARG UV_IMAGE=ghcr.io/astral-sh/uv:0.7.20
 FROM ${UV_IMAGE} AS uv-source
 
-FROM python:3.12-slim-bookworm
+FROM ubuntu:24.04
 
 ARG NODE_MAJOR=22
 ARG APT_MIRROR
@@ -12,12 +12,14 @@ ARG UV_INDEX_URL
 
 # Optionally override apt mirror for restricted networks (e.g. APT_MIRROR=mirrors.aliyun.com)
 RUN if [ -n "${APT_MIRROR}" ]; then \
-      sed -i "s|deb.debian.org|${APT_MIRROR}|g" /etc/apt/sources.list.d/debian.sources 2>/dev/null || true; \
-      sed -i "s|deb.debian.org|${APT_MIRROR}|g" /etc/apt/sources.list 2>/dev/null || true; \
+      sed -i "s|archive.ubuntu.com|${APT_MIRROR}|g" /etc/apt/sources.list.d/ubuntu.sources 2>/dev/null || true; \
     fi
 
-# Install system dependencies + Node.js (provides npx for MCP servers)
-RUN apt-get update && apt-get install -y \
+# Install system dependencies + Python 3.12 + Node.js (provides npx for MCP servers)
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
+    python3.12 \
+    python3.12-venv \
+    python3-pip \
     curl \
     build-essential \
     gnupg \
