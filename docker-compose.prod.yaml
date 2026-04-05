@@ -21,6 +21,13 @@ services:
     image: ghcr.io/chuongbill/deer-flow-nginx:latest
     expose:
       - "2026"
+    environment:
+      - LANGGRAPH_UPSTREAM=${LANGGRAPH_UPSTREAM:-langgraph:2024}
+      - LANGGRAPH_REWRITE=${LANGGRAPH_REWRITE:-/}
+    command: >
+      sh -c "envsubst '$$LANGGRAPH_UPSTREAM $$LANGGRAPH_REWRITE'
+      < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf
+      && nginx -g 'daemon off;'"
     labels:
       - "traefik.http.middlewares.deerflow-auth.basicauth.users=chuong:$2y$12$shpBXrZXqkoxY21d7YhWeOq7Y8M6jlYqO5cuFacXre6X3IWP2E/RC"
       - "traefik.http.routers.https-0-bfypytp9rkzww2tlfiexe90f-nginx.middlewares=gzip,deerflow-auth"
@@ -28,8 +35,6 @@ services:
       frontend:
         condition: service_healthy
       gateway:
-        condition: service_healthy
-      langgraph:
         condition: service_healthy
     networks:
       - deer-flow
@@ -57,7 +62,7 @@ services:
 
   gateway:
     image: ghcr.io/chuongbill/deer-flow-backend:latest
-    command: sh -c "cd backend && PYTHONPATH=. uv run uvicorn app.gateway.app:app --host 0.0.0.0 --port 8001 --workers 2"
+    command: sh -c "cd backend && PYTHONPATH=. uv run uvicorn app.gateway.app:app --host 0.0.0.0 --port 8001 --workers $${GATEWAY_WORKERS:-4}"
     volumes:
       - type: bind
         source: ./config.yaml

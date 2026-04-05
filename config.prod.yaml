@@ -189,6 +189,8 @@ tools:
 
 subagents:
   timeout_seconds: 600
+  # Optional global max-turn override for all subagents
+  # max_turns: 120
 
 tool_search:
   enabled: false
