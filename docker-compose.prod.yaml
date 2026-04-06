@@ -95,7 +95,7 @@ services:
 
   langgraph:
     image: ghcr.io/chuongbill/deer-flow-backend:latest
-    command: sh -c 'cd /app/backend && allow_blocking_flag="" && if [ "${LANGGRAPH_ALLOW_BLOCKING:-0}" = "1" ]; then allow_blocking_flag="--allow-blocking"; fi && uv run langgraph dev --no-browser ${allow_blocking_flag} --no-reload --host 0.0.0.0 --port 2024 --n-jobs-per-worker ${LANGGRAPH_JOBS_PER_WORKER:-10}'
+    command: sh -c 'cd /app/backend && allow_blocking="" && if [ "\${LANGGRAPH_ALLOW_BLOCKING:-0}" = "1" ]; then allow_blocking="--allow-blocking"; fi && uv run langgraph dev --no-browser \${allow_blocking} --no-reload --host 0.0.0.0 --port 2024 --n-jobs-per-worker \${LANGGRAPH_JOBS_PER_WORKER:-10}'
     volumes:
       - type: bind
         source: ./config.yaml
