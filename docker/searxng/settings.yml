@@ -6,25 +6,12 @@ use_default_settings: true
 general:
   instance_name: "DeerFlow Search"
 
-search:
-  safe_search: 0
-  autocomplete: ""
-  formats:
-    - html
-    - json
-
 server:
   secret_key: "change-me-to-a-random-string"
-  limiter: false
-  image_proxy: false
   port: 8080
   bind_address: "0.0.0.0"
 
-ui:
-  static_use_hash: true
-
 engines:
-  # Prioritize these engines for general search
   - name: google
     engine: google
     shortcut: g
@@ -40,3 +27,4 @@ engines:
   - name: wikipedia
     engine: wikipedia
     shortcut: wp
+
