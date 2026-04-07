@@ -68,6 +68,10 @@ def web_search_tool(query: str) -> str:
         resp = httpx.get(
             f"{base_url}/search",
             params=params,
+            headers={
+                "X-Forwarded-For": "127.0.0.1",
+                "X-Real-IP": "127.0.0.1",
+            },
             timeout=30,
         )
         resp.raise_for_status()

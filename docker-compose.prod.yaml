@@ -17,7 +17,7 @@ services:
       - deer-flow
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8080"]
+      test: ["CMD", "wget", "--spider", "-q", "--header=X-Real-IP: 127.0.0.1", "http://localhost:8080"]
       interval: 30s
       timeout: 5s
       retries: 3
