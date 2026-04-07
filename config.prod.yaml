@@ -6,46 +6,11 @@ token_usage:
   enabled: true
 
 models:
-  - name: gemini-3.1-flash-lite-preview
-    display_name: Gemini 3.1 Flash Lite (Cheapest)
-    use: langchain_openai:ChatOpenAI
-    model: gemini-3.1-flash-lite-preview
-    api_key: $OPENAI_API_KEY
-    base_url: $OPENAI_BASE_URL
-    temperature: 0.7
-    supports_thinking: false
-    supports_vision: true
-
-  - name: gemini-3-flash-preview
-    display_name: Gemini 3 Flash
-    use: langchain_openai:ChatOpenAI
-    model: gemini-3-flash-preview
-    api_key: $OPENAI_API_KEY
-    base_url: $OPENAI_BASE_URL
-    temperature: 0.7
-    supports_thinking: false
-    supports_vision: true
-
-  - name: gemini-3.1-pro-preview
-    display_name: Gemini 3.1 Pro (Thinking)
+  # ── 9Router Combo: gpt-5.4 (round-robin cx/ + gh/) ────────────────────────
+  - name: gpt-5.4
+    display_name: "GPT-5.4"
     use: deerflow.models.patched_openai:PatchedChatOpenAI
-    model: gemini-3.1-pro-preview
-    api_key: $OPENAI_API_KEY
-    base_url: $OPENAI_BASE_URL
-    temperature: 0.7
-    supports_thinking: true
-    supports_vision: true
-    when_thinking_enabled:
-      extra_body:
-        thinking:
-          type: enabled
-          thinking_budget: 8192
-
-  # ── 9Router Models (OpenAI-compatible codex) ──────────────────────────────
-  - name: cx-gpt-5.4
-    display_name: "GPT-5.4 (9Router)"
-    use: deerflow.models.patched_openai:PatchedChatOpenAI
-    model: cx/gpt-5.4
+    model: gpt-5.4
     api_key: $ROUTER9_API_KEY
     base_url: $ROUTER9_BASE_URL
     temperature: 0.7
@@ -57,10 +22,11 @@ models:
           type: enabled
           thinking_budget: 8192
 
-  - name: cx-gpt-5.3-codex-high
-    display_name: "GPT-5.3 Codex High (9Router)"
+  # ── 9Router Combo: MiniMax-M2.7 ───────────────────────────────────────────
+  - name: MiniMax-M2.7
+    display_name: "MiniMax M2.7"
     use: deerflow.models.patched_openai:PatchedChatOpenAI
-    model: cx/gpt-5.3-codex-high
+    model: MiniMax-M2.7
     api_key: $ROUTER9_API_KEY
     base_url: $ROUTER9_BASE_URL
     temperature: 0.7
@@ -72,26 +38,11 @@ models:
           type: enabled
           thinking_budget: 8192
 
-  - name: cx-gpt-5.3-codex
-    display_name: "GPT-5.3 Codex (9Router)"
+  # ── Claude Opus 4.6 (via 9Router) ─────────────────────────────────────────
+  - name: claude-opus-4.6
+    display_name: "Claude Opus 4.6"
     use: deerflow.models.patched_openai:PatchedChatOpenAI
-    model: cx/gpt-5.3-codex
-    api_key: $ROUTER9_API_KEY
-    base_url: $ROUTER9_BASE_URL
-    temperature: 0.7
-    supports_thinking: true
-    supports_vision: true
-    when_thinking_enabled:
-      extra_body:
-        thinking:
-          type: enabled
-          thinking_budget: 8192
-
-  # ── GitHub Copilot Models (via 9Router, gh/ prefix) ───────────────────────
-  - name: gh-claude-sonnet-4.6
-    display_name: "Claude Sonnet 4.6 (GitHub)"
-    use: deerflow.models.patched_openai:PatchedChatOpenAI
-    model: gh/claude-sonnet-4.6
+    model: claude-opus-4.6
     api_key: $ROUTER9_API_KEY
     base_url: $ROUTER9_BASE_URL
     supports_thinking: true
@@ -102,33 +53,11 @@ models:
           type: enabled
           thinking_budget: 8192
 
-  - name: gh-claude-opus-4.6
-    display_name: "Claude Opus 4.6 (GitHub)"
+  # ── Claude Sonnet 4.6 (via 9Router) ───────────────────────────────────────
+  - name: claude-sonnet-4.6
+    display_name: "Claude Sonnet 4.6"
     use: deerflow.models.patched_openai:PatchedChatOpenAI
-    model: gh/claude-opus-4.6
-    api_key: $ROUTER9_API_KEY
-    base_url: $ROUTER9_BASE_URL
-    supports_thinking: true
-    supports_vision: true
-    when_thinking_enabled:
-      extra_body:
-        thinking:
-          type: enabled
-          thinking_budget: 8192
-
-  - name: gh-gemini-3-flash-preview
-    display_name: "Gemini 3 Flash (GitHub)"
-    use: langchain_openai:ChatOpenAI
-    model: gh/gemini-3-flash-preview
-    api_key: $ROUTER9_API_KEY
-    base_url: $ROUTER9_BASE_URL
-    supports_thinking: false
-    supports_vision: true
-
-  - name: gh-gpt-5.4
-    display_name: "GPT-5.4 (GitHub)"
-    use: deerflow.models.patched_openai:PatchedChatOpenAI
-    model: gh/gpt-5.4
+    model: claude-sonnet-4.6
     api_key: $ROUTER9_API_KEY
     base_url: $ROUTER9_BASE_URL
     supports_thinking: true
@@ -217,7 +146,7 @@ title:
 
 summarization:
   enabled: true
-  model_name: cx-gpt-5.3-codex
+  model_name: MiniMax-M2.7
   trigger:
     - type: tokens
       value: 16000
@@ -231,7 +160,7 @@ memory:
   enabled: true
   storage_path: .deer-flow/memory.json
   debounce_seconds: 30
-  model_name: cx-gpt-5.3-codex
+  model_name: MiniMax-M2.7
   max_facts: 100
   fact_confidence_threshold: 0.7
   injection_enabled: true
