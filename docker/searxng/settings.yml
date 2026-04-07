@@ -11,11 +11,17 @@ use_default_settings:
 general:
   instance_name: "DeerFlow Search"
 
+search:
+  formats:
+    - html
+    - json
+
 server:
-  secret_key: "change-me-to-a-random-string"
+  secret_key: "deerflow-searxng-internal-2026"
   port: 8080
   bind_address: "0.0.0.0"
   limiter: false
+  public_instance: false
   method: "GET"
 
 engines:
