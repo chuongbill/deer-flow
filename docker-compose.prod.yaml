@@ -8,6 +8,11 @@ services:
       - type: bind
         source: ./docker/searxng/settings.yml
         target: /etc/searxng/settings.yml
+      - type: bind
+        source: ./docker/searxng/limiter.toml
+        target: /etc/searxng/limiter.toml
+    environment:
+      - SEARXNG_LIMITER=false
     networks:
       - deer-flow
     restart: unless-stopped
