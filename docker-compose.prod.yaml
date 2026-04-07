@@ -65,6 +65,9 @@ services:
     command: sh -c "cd backend && PYTHONPATH=. uv run uvicorn app.gateway.app:app --host 0.0.0.0 --port 8001 --workers $${GATEWAY_WORKERS:-4}"
     volumes:
       - deer-flow-data:/app/backend/.deer-flow
+      - type: bind
+        source: ./config.prod.yaml
+        target: /app/config.yaml
     working_dir: /app
     environment:
       - CI=true
@@ -82,7 +85,7 @@ services:
       - deer-flow
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-sf", "http://127.0.0.1:8001/health"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8001/health')"]
       interval: 10s
       timeout: 5s
       retries: 3
@@ -93,6 +96,9 @@ services:
     command: sh -c 'cd /app/backend && args="--no-browser --no-reload --host 0.0.0.0 --port 2024 --n-jobs-per-worker ${LANGGRAPH_JOBS_PER_WORKER:-10}" && if [ "${LANGGRAPH_ALLOW_BLOCKING:-0}" = "1" ]; then args="$$args --allow-blocking"; fi && uv run langgraph dev $$args'
     volumes:
       - deer-flow-data:/app/backend/.deer-flow
+      - type: bind
+        source: ./config.prod.yaml
+        target: /app/config.yaml
     environment:
       - CI=true
       - DEER_FLOW_HOME=/app/backend/.deer-flow
@@ -110,7 +116,7 @@ services:
       - deer-flow
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-sf", "http://127.0.0.1:2024/ok"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:2024/ok')"]
       interval: 10s
       timeout: 5s
       retries: 5
