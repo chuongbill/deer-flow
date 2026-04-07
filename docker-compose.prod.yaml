@@ -64,25 +64,20 @@ services:
     image: ghcr.io/chuongbill/deer-flow-backend:latest
     command: sh -c "cd backend && PYTHONPATH=. uv run uvicorn app.gateway.app:app --host 0.0.0.0 --port 8001 --workers $${GATEWAY_WORKERS:-4}"
     volumes:
-      - type: bind
-        source: ./config.yaml
-        target: /app/backend/config.yaml
-      - type: bind
-        source: ./extensions_config.json
-        target: /app/backend/extensions_config.json
       - deer-flow-data:/app/backend/.deer-flow
     working_dir: /app
     environment:
       - CI=true
       - DEER_FLOW_HOME=/app/backend/.deer-flow
-      - DEER_FLOW_CONFIG_PATH=/app/backend/config.yaml
-      - DEER_FLOW_EXTENSIONS_CONFIG_PATH=/app/backend/extensions_config.json
+      - DEER_FLOW_CONFIG_PATH=/app/config.yaml
+      - DEER_FLOW_EXTENSIONS_CONFIG_PATH=/app/extensions_config.json
       - GEMINI_API_KEY=${GEMINI_API_KEY}
       - GEMINI_BASE_URL=${GEMINI_BASE_URL:-https://generativelanguage.googleapis.com/v1beta/openai/}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - OPENAI_BASE_URL=${OPENAI_BASE_URL}
       - ROUTER9_API_KEY=${ROUTER9_API_KEY}
       - ROUTER9_BASE_URL=${ROUTER9_BASE_URL}
+      - VLLM_API_KEY=${VLLM_API_KEY}
     networks:
       - deer-flow
     restart: unless-stopped
@@ -95,14 +90,8 @@ services:
 
   langgraph:
     image: ghcr.io/chuongbill/deer-flow-backend:latest
-    command: sh -c 'cd /app/backend && allow_blocking="" && if [ "\${LANGGRAPH_ALLOW_BLOCKING:-0}" = "1" ]; then allow_blocking="--allow-blocking"; fi && uv run langgraph dev --no-browser \${allow_blocking} --no-reload --host 0.0.0.0 --port 2024 --n-jobs-per-worker \${LANGGRAPH_JOBS_PER_WORKER:-10}'
+    command: sh -c 'cd /app/backend && args="--no-browser --no-reload --host 0.0.0.0 --port 2024 --n-jobs-per-worker ${LANGGRAPH_JOBS_PER_WORKER:-10}" && if [ "${LANGGRAPH_ALLOW_BLOCKING:-0}" = "1" ]; then args="$$args --allow-blocking"; fi && uv run langgraph dev $$args'
     volumes:
-      - type: bind
-        source: ./config.yaml
-        target: /app/config.yaml
-      - type: bind
-        source: ./extensions_config.json
-        target: /app/extensions_config.json
       - deer-flow-data:/app/backend/.deer-flow
     environment:
       - CI=true
@@ -116,6 +105,7 @@ services:
       - OPENAI_BASE_URL=${OPENAI_BASE_URL}
       - ROUTER9_API_KEY=${ROUTER9_API_KEY}
       - ROUTER9_BASE_URL=${ROUTER9_BASE_URL}
+      - VLLM_API_KEY=${VLLM_API_KEY}
     networks:
       - deer-flow
     restart: unless-stopped

@@ -198,9 +198,16 @@ tool_search:
 sandbox:
   use: deerflow.sandbox.local:LocalSandboxProvider
   allow_host_bash: true
+  bash_output_max_chars: 20000
+  read_file_output_max_chars: 50000
+  ls_output_max_chars: 20000
 
 skills:
   container_path: /mnt/skills
+
+skill_evolution:
+  enabled: false
+  moderation_model_name: null
 
 title:
   enabled: true
