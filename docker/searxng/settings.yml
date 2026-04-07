@@ -1,7 +1,12 @@
 # SearXNG settings for DeerFlow
 # Docs: https://docs.searxng.org/admin/settings/
 
-use_default_settings: true
+# Use defaults but REMOVE engines that crash on load (no Tor available)
+use_default_settings:
+  engines:
+    remove:
+      - ahmia
+      - torch
 
 general:
   instance_name: "DeerFlow Search"
@@ -10,24 +15,10 @@ server:
   secret_key: "change-me-to-a-random-string"
   port: 8080
   bind_address: "0.0.0.0"
-  # Disable limiter/bot detection — this instance is internal-only,
-  # accessed directly by the backend, not through a reverse proxy.
-  # This fixes: "X-Forwarded-For nor X-Real-IP header is set!" error
-  # and: "missing config file: /etc/searxng/limiter.toml" warning
   limiter: false
   method: "GET"
 
-# Explicitly disable Tor-based engines that fail without Tor connectivity
-# (ahmia and torch are loaded by default and produce ERROR logs)
 engines:
-  - name: ahmia
-    engine: ahmia
-    disabled: true
-
-  - name: torch
-    engine: torch
-    disabled: true
-
   - name: google
     engine: google
     shortcut: g
