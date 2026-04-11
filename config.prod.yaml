@@ -1,5 +1,5 @@
 # DeerFlow Production Config (Coolify) - via LiteLLM Proxy
-config_version: 5
+config_version: 6
 log_level: warning
 
 token_usage:
@@ -132,7 +132,7 @@ sandbox:
   ls_output_max_chars: 20000
 
 skills:
-  container_path: /mnt/skills
+  container_path: /app/skills
 
 skill_evolution:
   enabled: false

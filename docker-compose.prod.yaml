@@ -71,6 +71,9 @@ services:
     volumes:
       - deer-flow-data:/app/backend/.deer-flow
       - type: bind
+        source: ./skills
+        target: /app/skills
+      - type: bind
         source: ./config.prod.yaml
         target: /app/config.yaml
     working_dir: /app
@@ -79,6 +82,8 @@ services:
       - DEER_FLOW_HOME=/app/backend/.deer-flow
       - DEER_FLOW_CONFIG_PATH=/app/config.yaml
       - DEER_FLOW_EXTENSIONS_CONFIG_PATH=/app/extensions_config.json
+      - DEER_FLOW_CHANNELS_LANGGRAPH_URL=${DEER_FLOW_CHANNELS_LANGGRAPH_URL:-http://langgraph:2024}
+      - DEER_FLOW_CHANNELS_GATEWAY_URL=${DEER_FLOW_CHANNELS_GATEWAY_URL:-http://gateway:8001}
       - GEMINI_API_KEY=${GEMINI_API_KEY}
       - GEMINI_BASE_URL=${GEMINI_BASE_URL:-https://generativelanguage.googleapis.com/v1beta/openai/}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
@@ -101,6 +106,9 @@ services:
     command: sh -c 'cd /app/backend && args="--no-browser --no-reload --host 0.0.0.0 --port 2024 --n-jobs-per-worker ${LANGGRAPH_JOBS_PER_WORKER:-10}" && if [ "${LANGGRAPH_ALLOW_BLOCKING:-0}" = "1" ]; then args="$$args --allow-blocking"; fi && uv run langgraph dev $$args'
     volumes:
       - deer-flow-data:/app/backend/.deer-flow
+      - type: bind
+        source: ./skills
+        target: /app/skills
       - type: bind
         source: ./config.prod.yaml
         target: /app/config.yaml
